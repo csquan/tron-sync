@@ -1,0 +1,91 @@
+output:
+  db: "root:csquan253905@tcp(127.0.0.1:3306)/block_data_test?charset=utf8mb4"
+  block_worker: 5
+  tx_worker: 1
+  sql_batch: 500
+  retry_times: 5
+  retry_interval: 300
+
+fetch:
+  rpc_url: "http://127.0.0.1:8202"
+  multi_call_contract: "0x2c55d51804cf5b436ba5af37bd7b8e5db70ebf29"
+  block_worker: 10
+  tx_worker: 3
+  tx_batch: 64
+  block_batch: 15
+  blocks_delay: 3
+  block_wait_time: 3000
+  is_deal_internal: false
+  fetch_batch: 64
+  fetch_retry_times: 5
+  fetch_retry_interval: 100
+  fetch_timeout: 3000
+  start_height: 1
+  end_height: 0
+
+
+
+#The configuration item should be consistent with the task name in the code
+tasks:
+  # - "push_kafka"
+  # - "native_balance"
+  #  - "balance_task"
+  #  - "erc20_tx"
+  # - "erc721_basic"
+  # - "dex_pair"
+
+log:
+  stdout:
+    enable: true
+    level: 5
+  file:
+    enable: true
+    path: "./log/app.log"
+    level: 5
+  kafka:
+    enable: false
+    topic: "huobi-test"
+    kafka_servers:
+      - "kafka-1.huobidev.com:9092"
+      - "kafka-2.huobidev.com:9092"
+      - "kafka-3.huobidev.com:9092"
+    level: 5
+
+balance:
+  concurrent_count: 5
+  batch_block_size: 500
+  buffer_size: 10
+  cache_size: 50000
+
+erc20_balance:
+  concurrent_count: 15
+  batch_block_size: 5
+  buffer_size: 10
+  cache_size: 100000
+  batch_rpc: 128
+
+base_storage:
+  buffer_size: 10
+  max_block_count: 100
+  max_tx_count: 500
+  max_log_count: 1000
+  max_interval: 100
+
+erc721_tx:
+  batch_block_size: 50
+erc20_tx:
+  batch_block_size: 50
+
+kafka:
+  batch_block_size: 5
+  producer_max: 5242880
+  kafka_servers:
+    - "127.0.0.1:9092"
+
+push_blk:
+  buffer_size: 10
+  topic: blk_topic
+
+erc1155_tx:
+  batch_block_size: 50
+

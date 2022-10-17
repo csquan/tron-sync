@@ -1,0 +1,26 @@
+output:
+  db: "https://pub001.hg.network/rpc"
+  block_worker: 5
+  tx_worker: 5
+  sql_batch: 100
+
+fetch:
+  rpc_url: ""
+  block_worker: 10
+  tx_worker: 15
+  tx_batch: 10
+    
+start_height: 0
+end_height: 1
+block_batch: 10
+
+log:
+  kafka_servers:
+      - kafka-01.sinnet.huobiidc.com:9092,
+      - kafka-02.sinnet.huobiidc.com:9092,
+      - kafka-03.sinnet.huobiidc.com:9092,
+      - kafka-04.sinnet.huobiidc.com:9092,
+      - kafka-05.sinnet.huobiidc.com:9092,
+      - kafka-06.sinnet.huobiidc.com:9092
+  level: 5
+  topic: "applog-heco"
