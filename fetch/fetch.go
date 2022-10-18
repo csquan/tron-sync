@@ -3,6 +3,7 @@ package fetch
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"sort"
 	"strconv"
@@ -17,7 +18,6 @@ import (
 	"github.com/starslabhq/chainmonitor/config"
 	"github.com/starslabhq/chainmonitor/utils"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/event"
@@ -78,7 +78,7 @@ func (f *Fetcher) getLocalLatestBlock() *mysqldb.Block {
 	return blk.(*mysqldb.Block)
 }
 
-//[start,end)
+// [start,end)
 func (f *Fetcher) Run(start, end uint64) {
 	if start == 0 {
 		curBlock := f.getLocalLatestBlock()
@@ -277,21 +277,45 @@ func (f *Fetcher) groupTxs(txs []*mtypes.TxJson, batch int) chan []*mtypes.TxJso
 	return ret
 }
 
+// 这里暂时不用以太坊标准的结构--底层返回的结构不全
+type Receiptmp struct {
+	// Consensus fields: These fields are defined by the Yellow Paper
+	Type              uint8  `json:"type,omitempty"`
+	PostState         []byte `json:"root"`
+	Status            uint64 `json:"status"`
+	CumulativeGasUsed uint64 `json:"cumulativeGasUsed" gencodec:"required"`
+	//Bloom             Bloom  `json:"logsBloom"         gencodec:"required"`
+	//Logs              []*Log `json:"logs"              gencodec:"required"`
+
+	// Implementation fields: These fields are added by geth when processing a transaction.
+	// They are stored in the chain database.
+	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
+	ContractAddress common.Address `json:"contractAddress"`
+	GasUsed         uint64         `json:"gasUsed" gencodec:"required"`
+
+	// Inclusion information: These fields provide information about the inclusion of the
+	// transaction corresponding to this receipt.
+	BlockHash        common.Hash `json:"blockHash,omitempty"`
+	BlockNumber      *big.Int    `json:"blockNumber,omitempty"`
+	TransactionIndex uint        `json:"transactionIndex"`
+}
+
 func (f *Fetcher) createTxBatch(txs []*mtypes.TxJson, blockNum *big.Int, baseFee *big.Int) ([]*mtypes.Tx, []*mtypes.Contract, error) {
 	retTxs := make([]*mtypes.Tx, 0)
 	retContracts := make([]*mtypes.Contract, 0)
 
 	elemsReceipts := make([]rpc.BatchElem, 0)
-	receipts := make(map[string]*types.Receipt)
+	receipts := make(map[string]*Receiptmp)
 
 	for _, tx := range txs {
-		receipt := &types.Receipt{}
+		//receipt := &types.Receipt{}
+		receipt1 := &Receiptmp{}
 		elemsReceipt := rpc.BatchElem{
 			Method: "eth_getTransactionReceipt",
 			Args:   []interface{}{tx.Hash},
-			Result: receipt,
+			Result: receipt1,
 		}
-		receipts[tx.Hash] = receipt
+		receipts[tx.Hash] = receipt1
 		elemsReceipts = append(elemsReceipts, elemsReceipt)
 	}
 	// call get receipts
@@ -340,38 +364,38 @@ func (f *Fetcher) createTxBatch(txs []*mtypes.TxJson, blockNum *big.Int, baseFee
 		}
 
 		eventLogs := make([]*mtypes.EventLog, 0)
-		for _, item := range receipt.Logs {
-			txlog := item
-
-			elog := &mtypes.EventLog{}
-			var topic0, topic1, topic2, topic3 string
-			switch len(item.Topics) {
-			case 1:
-				topic0 = item.Topics[0].Hex()
-			case 2:
-				topic0 = item.Topics[0].Hex()
-				topic1 = item.Topics[1].Hex()
-			case 3:
-				topic0 = item.Topics[0].Hex()
-				topic1 = item.Topics[1].Hex()
-				topic2 = item.Topics[2].Hex()
-			case 4:
-				topic0 = item.Topics[0].Hex()
-				topic1 = item.Topics[1].Hex()
-				topic2 = item.Topics[2].Hex()
-				topic3 = item.Topics[3].Hex()
-			}
-			elog.Topic0 = topic0
-			elog.Topic1 = topic1
-			elog.Topic2 = topic2
-			elog.Topic3 = topic3
-
-			elog.Addr = strings.ToLower(txlog.Address.Hex())
-			elog.Data = hexutil.Encode(txlog.Data) //TODO是否hash编码
-			elog.Index = txlog.Index
-			elog.TopicCnt = len(item.Topics)
-			eventLogs = append(eventLogs, elog)
-		}
+		//for _, item := range receipt.Logs {
+		//	txlog := item
+		//
+		//	elog := &mtypes.EventLog{}
+		//	var topic0, topic1, topic2, topic3 string
+		//	switch len(item.Topics) {
+		//	case 1:
+		//		topic0 = item.Topics[0].Hex()
+		//	case 2:
+		//		topic0 = item.Topics[0].Hex()
+		//		topic1 = item.Topics[1].Hex()
+		//	case 3:
+		//		topic0 = item.Topics[0].Hex()
+		//		topic1 = item.Topics[1].Hex()
+		//		topic2 = item.Topics[2].Hex()
+		//	case 4:
+		//		topic0 = item.Topics[0].Hex()
+		//		topic1 = item.Topics[1].Hex()
+		//		topic2 = item.Topics[2].Hex()
+		//		topic3 = item.Topics[3].Hex()
+		//	}
+		//	elog.Topic0 = topic0
+		//	elog.Topic1 = topic1
+		//	elog.Topic2 = topic2
+		//	elog.Topic3 = topic3
+		//
+		//	elog.Addr = strings.ToLower(txlog.Address.Hex())
+		//	elog.Data = hexutil.Encode(txlog.Data) //TODO是否hash编码
+		//	elog.Index = txlog.Index
+		//	elog.TopicCnt = len(item.Topics)
+		//	eventLogs = append(eventLogs, elog)
+		//}
 
 		txTmp.EventLogs = eventLogs
 
@@ -441,7 +465,6 @@ func (f *Fetcher) multiExecCreateTxBatch(txs []*mtypes.TxJson, workCnt int, bloc
 	return txsall, contractsAll, errs
 }
 
-//
 func (f *Fetcher) GetTxInternalsByBlockFantom(num *big.Int) ([]*mtypes.TxInternal, []*mtypes.Contract) {
 	methodName := "trace_block"
 	/*

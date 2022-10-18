@@ -69,6 +69,19 @@ func (b *BlockJson) ToBlock() *Block {
 	return block
 }
 
+// transaction type
+type TxType uint8
+
+const (
+	Binary TxType = iota
+	LoginCandidate
+	LogoutCandidate
+	Delegate
+	UnDelegate
+)
+
+type Number int64
+
 type TxJson struct {
 	From                 string `json:"from"`
 	Gas                  string `json:"gas"`
@@ -82,19 +95,74 @@ type TxJson struct {
 	S                    string `json:"s"`
 	To                   string `json:"to"`
 	TransactionIndex     string `json:"transactionIndex"`
-	Type                 string `json:"type"`
+	Type                 uint8  `json:"type"`
 	V                    string `json:"v"`
 	Value                string `json:"value"`
 }
 
+/*
+// todo：优化代码
+
+	func (t *TxJson) UnmarshalJSON(d []byte) error {
+		tmp := struct {
+			From                 string      `json:"from"`
+			Gas                  string      `json:"gas"`
+			GasPrice             string      `json:"gasPrice"`
+			Hash                 string      `json:"hash"`
+			Input                string      `json:"input"`
+			MaxFeePerGas         string      `json:"maxFeePerGas"`
+			MaxPriorityFeePerGas string      `json:"maxPriorityFeePerGas"`
+			Nonce                string      `json:"nonce"`
+			R                    string      `json:"r"`
+			S                    string      `json:"s"`
+			To                   string      `json:"to"`
+			TransactionIndex     string      `json:"transactionIndex"`
+			Type                 interface{} `json:"Type"`
+			V                    string      `json:"v"`
+			Value                string      `json:"value"`
+		}{}
+
+		if err := json.Unmarshal(d, &tmp); err != nil {
+			return err
+		}
+
+		t.From = tmp.From
+		t.Gas = tmp.Gas
+		t.GasPrice = tmp.GasPrice
+		t.Hash = tmp.Hash
+		t.Input = tmp.Input
+		t.MaxFeePerGas = tmp.MaxFeePerGas
+		t.MaxPriorityFeePerGas = tmp.MaxPriorityFeePerGas
+
+		t.Nonce = tmp.Nonce
+		t.R = tmp.R
+		t.S = tmp.S
+		t.To = tmp.To
+		t.TransactionIndex = tmp.TransactionIndex
+		t.V = tmp.V
+		t.Value = tmp.Value
+
+		switch v := tmp.Type.(type) {
+		case float64:
+			t.Type = strconv.Itoa(int(v))
+		case string:
+			t.Type = v
+		default:
+			return fmt.Errorf("invalid value for Foo: %v", v)
+		}
+
+		return nil
+	}
+*/
 func (t *TxJson) ToTx() *Tx {
 	var txtype uint64
-	if t.Type == ""{
-		txtype = 0
-	}else{
-		txtype = hexutil.MustDecodeUint64(t.Type)
-	}
+	//if t.Type == "" {
+	//	txtype = 0
+	//} else {
+	//	txtype = hexutil.MustDecodeUint64(t.Type)
+	//}
 
+	txtype = uint64(t.Type)
 
 	index := hexutil.MustDecodeUint64(t.TransactionIndex)
 	value := hexutil.MustDecodeBig(t.Value)

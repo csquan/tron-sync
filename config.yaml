@@ -19,8 +19,8 @@ fetch:
   fetch_batch: 64
   fetch_retry_times: 5
   fetch_retry_interval: 100
-  fetch_timeout: 3000
-  start_height: 1
+  fetch_timeout: 300000
+  start_height: 0
   end_height: 0
 
 
