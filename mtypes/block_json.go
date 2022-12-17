@@ -95,7 +95,7 @@ type TxJson struct {
 	S                    string `json:"s"`
 	To                   string `json:"to"`
 	TransactionIndex     string `json:"transactionIndex"`
-	Type                 uint8  `json:"type"`
+	Type                 string `json:"type"`
 	V                    string `json:"v"`
 	Value                string `json:"value"`
 }
@@ -156,13 +156,13 @@ type TxJson struct {
 */
 func (t *TxJson) ToTx() *Tx {
 	var txtype uint64
-	//if t.Type == "" {
-	//	txtype = 0
-	//} else {
-	//	txtype = hexutil.MustDecodeUint64(t.Type)
-	//}
+	if t.Type == "" {
+		txtype = 0
+	} else {
+		txtype = hexutil.MustDecodeUint64(t.Type)
+	}
 
-	txtype = uint64(t.Type)
+	//txtype = uint64(t.Type)
 
 	index := hexutil.MustDecodeUint64(t.TransactionIndex)
 	value := hexutil.MustDecodeBig(t.Value)

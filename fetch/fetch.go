@@ -336,17 +336,17 @@ func (f *Fetcher) createTxBatch(txs []*mtypes.TxJson, blockNum *big.Int, baseFee
 	retContracts := make([]*mtypes.Contract, 0)
 
 	elemsReceipts := make([]rpc.BatchElem, 0)
-	receipts := make(map[string]*Receiptmp)
+	receipts := make(map[string]*types.Receipt)
 
 	for _, tx := range txs {
-		//receipt := &types.Receipt{}
-		receipt1 := &Receiptmp{}
+		receipt := &types.Receipt{}
+		//receipt1 := &Receiptmp{}
 		elemsReceipt := rpc.BatchElem{
 			Method: "eth_getTransactionReceipt",
 			Args:   []interface{}{tx.Hash},
-			Result: receipt1,
+			Result: receipt,
 		}
-		receipts[tx.Hash] = receipt1
+		receipts[tx.Hash] = receipt
 		elemsReceipts = append(elemsReceipts, elemsReceipt)
 	}
 	// call get receipts

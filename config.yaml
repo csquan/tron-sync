@@ -7,8 +7,8 @@ output:
   retry_interval: 300
 
 fetch:
-  rpc_url: "http://127.0.0.1:8202"
-  multi_call_contract: "0x2c55d51804cf5b436ba5af37bd7b8e5db70ebf29"
+  rpc_url: "http://43.198.66.226:8545"
+  multi_call_contract: ""
   block_worker: 10
   tx_worker: 3
   tx_batch: 64
@@ -20,7 +20,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 0
+  start_height: 119490
   end_height: 0
 
 
@@ -28,9 +28,9 @@ fetch:
 #The configuration item should be consistent with the task name in the code
 tasks:
   # - "push_kafka"
-  # - "native_balance"
-  #  - "balance_task"
-  #  - "erc20_tx"
+    - "native_balance"
+    - "erc20_balance"
+    - "erc20_tx"
   # - "erc721_basic"
   # - "dex_pair"
 
