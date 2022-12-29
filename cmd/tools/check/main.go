@@ -78,7 +78,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("create mysqldb err:%v", err)
 	}
-	engine.ShowSQL(false)
+	engine.ShowSQL(true)
 	db := &DB{
 		engine: engine,
 	}

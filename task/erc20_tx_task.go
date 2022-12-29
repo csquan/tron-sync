@@ -168,6 +168,38 @@ func isErc20Tx(tlog *mtypes.EventLog) bool {
 	return topicOk && tlog.Topic0 == erc20Transfer
 }
 
+func (et *Erc20TxTask) getOrigin(erc20Infos []*mtypes.Erc20Info, height uint64) {
+	s := et.db.GetSession()
+	defer s.Close()
+
+	for _, info := range erc20Infos {
+		if info.TotoalSupply != "" {
+			//取出db中存储的原有totalsupply，以info.Addr查找Erc20_info中
+			oldInfo, err := et.db.GetErc20info(info.Addr)
+			if err != nil {
+				fmt.Println("GetErc20info error" + err.Error())
+			}
+			if oldInfo == nil {
+				fmt.Println("GetErc20info null")
+			} else if oldInfo.TotoalSupply != "" {
+				//这里应该先删除info.Addr这一行
+				err := et.db.DeleteErc20InfoByAddr(et.db.GetSession(), info.Addr)
+				if err != nil {
+					fmt.Printf("DeleteErc20InfoByAddr error")
+				}
+				info.TotoalSupplyOrigin = oldInfo.TotoalSupply
+			}
+		}
+	}
+	err := s.Commit()
+	if err != nil {
+		if err1 := s.Rollback(); err1 != nil {
+			fmt.Printf("erc20tx rollback err:%v,bnum:%d", err1, height)
+		}
+		fmt.Printf("erc20tx commit err:%v,bnum:%d", err, height)
+	}
+}
+
 func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.Erc20Info, height uint64) {
 	utils.HandleErrorWithRetry(func() error {
 		st := time.Now()
@@ -231,6 +263,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 
 	for i := 0; i < len(blks); i++ {
 		blk := blks[i]
+
 		blkCount++
 		for _, tx := range blk.Txs {
 			txhash := tx.Hash
@@ -281,6 +314,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 		}
 		if blkCount >= et.config.Erc20Tx.MaxBlockCount || len(txErc20s) >= et.config.Erc20Tx.MaxTxCount || i == len(blks)-1 {
 			logrus.Debugf("erc20 small trans blk from: %v to: %v, blkCount: %v  txCount: %v curheight:%v", i+1-blkCount, i+1, blkCount, len(txErc20s), blk.Number)
+			et.getOrigin(erc20Infos, blk.Number)
 			et.doSave(txErc20s, erc20Infos, blk.Number)
 			blkCount = 0
 			txErc20s = txErc20s[0:0]

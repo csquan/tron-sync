@@ -343,6 +343,19 @@ func (db *MysqlDB) GetBlockByNumAndState(num uint64, state int) (*Block, error) 
 	return block, err
 }
 
+// state=1 block 只有一条记录
+func (db *MysqlDB) GetErc20info(addr string) (*Erc20Info, error) {
+	info := &Erc20Info{}
+	ok, err := db.engine.Where("addr = ?", addr).Limit(1).Get(info)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, nil
+	}
+	return info, err
+}
+
 func (db *MysqlDB) GetBalanceErc20(address string, contractAddr string) (balanceErc20 *BalanceErc20, err error) {
 	balanceErc20 = &BalanceErc20{}
 	ok, err := db.engine.Where("addr = ? and contract_addr = ?", address, contractAddr).Get(balanceErc20)

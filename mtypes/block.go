@@ -66,11 +66,12 @@ type Erc20Transfer struct {
 }
 
 type Erc20Info struct {
-	Addr         string
-	Name         string
-	Symbol       string
-	Decimals     uint8
-	TotoalSupply string
+	Addr               string
+	Name               string
+	Symbol             string
+	Decimals           uint8
+	TotoalSupply       string
+	TotoalSupplyOrigin string
 }
 
 type Erc721Info struct {

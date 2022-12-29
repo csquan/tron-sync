@@ -20,7 +20,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 119490
+  start_height: 0
   end_height: 0
 
 

@@ -11,6 +11,11 @@ func (db *MysqlDB) UpdateAsyncTaskNumByName(session xorm.Interface, name string,
 	return err
 }
 
+func (db *MysqlDB) DeleteErc20InfoByAddr(session xorm.Interface, addr string) error {
+	_, err := session.Exec("delete from erc20_info where addr = ?", addr)
+	return err
+}
+
 func (db *MysqlDB) SaveBlock(session xorm.Interface, block *Block) (blkId int64, err error) {
 	exist, err := db.isBlockExist(session, block.Number, Block_ok)
 	if err != nil {

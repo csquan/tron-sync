@@ -15,6 +15,7 @@ type IReader interface {
 	GetTokenPairByAddr(addr string) (*mysqldb.TokenPair, error)
 	GetErc1155Balance(address string, contractAddr string, tokenID string) (*mysqldb.BalanceErc1155, error)
 	GetBlockByNumAndState(num uint64, state int) (*mysqldb.Block, error)
+	GetErc20info(addr string) (*mysqldb.Erc20Info, error)
 }
 
 type IWriter interface {
@@ -50,6 +51,8 @@ type IWriter interface {
 	//TokenPair
 	SaveTokenPairs(xorm.Interface, []*mysqldb.TokenPair) error
 	UpdateTokenPairsReserve(s xorm.Interface, pairs []*mysqldb.TokenPair) error
+
+	DeleteErc20InfoByAddr(session xorm.Interface, addr string) error
 
 	GetSession() *xorm.Session
 	GetEngine() *xorm.Engine

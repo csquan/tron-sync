@@ -221,6 +221,7 @@ func ConvertInErc20Infos(erc20Infos []*mtypes.Erc20Info) []*Erc20Info {
 			totalSupply = info.TotoalSupply[:65]
 		} else if info.TotoalSupply != "" {
 			totalSupply = info.TotoalSupply
+			origin = info.TotoalSupplyOrigin
 		}
 		ret = append(ret, &Erc20Info{
 			Addr:               info.Addr,
