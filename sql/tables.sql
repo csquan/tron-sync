@@ -313,3 +313,29 @@ CREATE TABLE `balance_erc1155`
     PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,
     UNIQUE KEY `addr_contract` (`addr`,`contract_addr`,`token_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='erc1155 账户表';
+
+
+DROP TABLE IF EXISTS `t_eventhash`;
+CREATE TABLE `t_eventhash`
+(
+    `eventhash`       varchar(256)   NOT NULL DEFAULT '0' COMMENT 'eventhash',
+    `op` varchar(256)   NOT NULL DEFAULT '' COMMENT 'op',
+    PRIMARY KEY (`eventhash`) /*T![clustered_index] CLUSTERED */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='t_eventhash 动作hash表';
+
+
+insert into t_eventhash(eventhash, op)
+values ('5489f822c4be2c44efd51dbcbd5cf3ac98aa95d657ceb577118f6abbfbc53b96', 'AddBlack'),
+       ('ba1e86f1f4570d1feaa3b978dbe6a7dd03c7004df88f50a9eba6ed258e4d025b', 'RemoveBlack'),
+       ('362809633ae771a1e765e7fb97462fb07d1a7eeb081190efffcea78ca70e32f5', 'AddBlackIn'),
+       ('9ef10adabfdfa212070d43541902c7fd6f7ceba6cedb9dc5ccd53f6a3dd09c36', 'RemoveBlackIn'),
+       ('71caaa40e79637c707c879b4c8f30f163eab89084138078b6f6e9f1f7dd58d9d', 'AddBlackOut'),
+       ('1354eb903ea104cbd751eec45307639ce124585b0e8172dd33c4d0ecef3a5fe2', 'RemoveBlackOut'),
+       ('0cf1571993e607251d8c84fabf6d554da5bc040010cb9e1e0ff7f0753f2c7ccb', 'AddBlackBlock'),
+       ('81a93c04f4d489ee80b0929b36576922bd096cfd416205515e1b7f028f2e0ba2', 'RemoveBlackBlock'),
+       ('7b0c29e799ed468266b4d070c03070137a95cb869c5eb7c18063fb7b1a7a09c5', 'Frozen'),
+       ('cfaa1553132d0157579084fe1ca4a05fa35561f3b05281ed6daf9bda1ad9c32b', 'UnFrozen'),
+       ('ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', 'Transfer'),
+       ('62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a258', 'Paused'),
+       ('5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa', 'Unpaused');
+
