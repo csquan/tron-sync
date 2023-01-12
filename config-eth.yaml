@@ -12,16 +12,16 @@ fetch:
   #rpc_url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
   #rpc_url: "https://52.169.42.101:8545"
   #rpc_url: "https://rpc.ankr.com/eth_goerli"
-  rpc_url: "https://data-seed-prebsc-1-s1.binance.org:8545/"
+  rpc_url: "https://data-seed-prebsc-2-s1.binance.org:8545"
   multi_call_contract: ""
-  block_worker: 2
-  tx_worker: 1
-  tx_batch: 1
-  block_batch: 2
+  block_worker: 8
+  tx_worker: 8
+  tx_batch: 8
+  block_batch: 8
   blocks_delay: 3
   block_wait_time: 3000
   is_deal_internal: false
-  fetch_batch: 32
+  fetch_batch: 64
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000

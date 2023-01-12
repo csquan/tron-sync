@@ -1,9 +1,12 @@
 all: build
 
+version := "1.0.0"
+dockerName := "reg.huiwang.io/fat/hui-sync"
+
 CURRENT_DIR=$(pwd)
 
-PROJ = heco-sync
-MODULE = "heco-sync"
+PROJ = Hui-sync
+MODULE = "Hui-sync"
 
 PKG = `go list ./... | grep -v /vendor/`
 
@@ -31,13 +34,15 @@ clean:
 	rm -rf bin
 
 build:
-	go build ${PKG_TAG} -o bin/heco-sync main.go
+	go build ${PKG_TAG} -o bin/Hui-sync main.go
+#	sudo docker build -t $(dockerName):$(version) .
+#    sudo docker push $(dockerName):$(version)
 
 test: style cilint
 	go test -cover ./...
 
 server: clean test
-	${CROSS_COMPILE} go build -o bin/linux-amd64-heco-sync ${PKG_TAG} main.go
+	${CROSS_COMPILE} go build -o bin/linux-amd64-Hui-sync ${PKG_TAG} main.go
 
 comp_balance_server:
 	${CROSS_COMPILE} go build -o bin/comp_balance ${PKG_TAG} tools/compensation/*.go
