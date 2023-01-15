@@ -5,9 +5,9 @@ import (
 	"fmt"
 	_ "net/http/pprof"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/log"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/log"
 )
 
 var (

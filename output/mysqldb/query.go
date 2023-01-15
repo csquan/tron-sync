@@ -6,7 +6,7 @@ import (
 
 	"xorm.io/xorm"
 
-	"github.com/starslabhq/chainmonitor/mtypes"
+	"github.com/chainmonitor/mtypes"
 )
 
 func (db *MysqlDB) GetSession() *xorm.Session {

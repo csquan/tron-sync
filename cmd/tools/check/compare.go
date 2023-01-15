@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
 )
 
 func compare(d1 *DataChain, d2 *DataDB, internal bool, chainName string) error {

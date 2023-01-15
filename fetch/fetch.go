@@ -13,19 +13,19 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/db"
+	"github.com/chainmonitor/db"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/utils"
 
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/rpc"
 	log "github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
 )
 
 type Fetcher struct {

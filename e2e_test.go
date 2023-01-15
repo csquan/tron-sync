@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/output/mysqldb"
 	"gotest.tools/assert"
 )
 

@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/log"
+	"github.com/chainmonitor/log"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/process"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/process"
 
 	"net/http"
 	_ "net/http/pprof"

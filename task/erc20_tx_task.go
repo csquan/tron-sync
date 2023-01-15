@@ -1,11 +1,18 @@
 package task
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/chainmonitor/utils"
 	"math/big"
 	"strings"
 	"time"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/db"
+	"github.com/chainmonitor/kafka"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -13,11 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/db"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
-	"github.com/starslabhq/chainmonitor/utils"
 )
 
 var erc20Transfer = `0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`
@@ -29,6 +31,7 @@ type Erc20TxTask struct {
 	*BaseAsyncTask
 	erc20ABI   abi.ABI
 	erc20infos *lru.Cache
+	kafka      *kafka.PushKafkaService
 }
 
 func NewErc20TxTask(config *config.Config, client *rpc.Client, db db.IDB) (*Erc20TxTask, error) {
@@ -48,6 +51,15 @@ func NewErc20TxTask(config *config.Config, client *rpc.Client, db db.IDB) (*Erc2
 	if err != nil {
 		return nil, err
 	}
+	p, err := kafka.NewSyncProducer(config.Kafka)
+	if err != nil {
+		return nil, err
+	}
+	et.kafka, err = kafka.NewPushKafkaService(config, p)
+	if err != nil {
+		return nil, err
+	}
+	et.kafka.Topic = et.config.Kafka.Topic
 	return et, nil
 }
 
@@ -259,6 +271,7 @@ func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.
 func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 	var txErc20s []*mysqldb.TxErc20
 	var erc20Infos []*mtypes.Erc20Info
+	var txKakfkas []*mtypes.TxKakfa
 	var blkCount int = 0
 
 	for i := 0; i < len(blks); i++ {
@@ -295,7 +308,14 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockNum:       blk.Number,
 					BlockTime:      blk.TimeStamp,
 				}
+				txKakfa := &mtypes.TxKakfa{
+					From:      sender,
+					To:        receiver,
+					Amount:    tokenCnt,
+					TokenAddr: addr,
+				}
 				txErc20s = append(txErc20s, txErc20)
+				txKakfkas = append(txKakfkas, txKakfa)
 				if tlog.Addr != utils.ZeroAddress && !et.erc20infos.Contains(addr) {
 					// st := time.Now()
 					ethAddr := common.HexToAddress(addr)
@@ -309,6 +329,16 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					}
 					// log.Printf("erc20info:%v", erc20Info)
 					// logrus.Infof("erc20 info cost:%d", time.Since(st)/time.Millisecond)
+				}
+				//push erc20tx to kafka KakfaTx
+				b, err := json.Marshal(txKakfkas)
+				if err != nil {
+					logrus.Warnf("Marshal txErc20s err:%v", err)
+				}
+
+				err = et.kafka.Pushkafka(b)
+				if err != nil {
+					logrus.Error(err)
 				}
 			}
 		}

@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/go-xorm/xorm"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
 )
 
 type DataDB struct {

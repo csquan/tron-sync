@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/log"
+	"github.com/chainmonitor/log"
 
 	"github.com/sirupsen/logrus"
 )

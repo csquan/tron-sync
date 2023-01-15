@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/starslabhq/chainmonitor/subscribe"
+	"github.com/chainmonitor/subscribe"
 )
 
 type ITask interface {

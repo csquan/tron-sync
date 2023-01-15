@@ -1,6 +1,6 @@
 output:
-  #db: "root:csquan253905@tcp(127.0.0.1:3306)/block_data_test?charset=utf8mb4" #HUI
-  db: "root:csquan253905@tcp(127.0.0.1:3306)/block_bsc_test?charset=utf8mb4"
+  db: "root:csquan253905@tcp(127.0.0.1:3306)/block_data_test?charset=utf8mb4" #HUI
+  #db: "root:csquan253905@tcp(127.0.0.1:3306)/block_bsc_test?charset=utf8mb4"
   block_worker: 1
   tx_worker: 1
   sql_batch: 500
@@ -8,11 +8,11 @@ output:
   retry_interval: 300
 
 fetch:
-  #rpc_url: "http://43.198.66.226:8545" #HUi
+  rpc_url: "http://43.198.66.226:8545" #HUi
   #rpc_url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
   #rpc_url: "https://52.169.42.101:8545"
   #rpc_url: "https://rpc.ankr.com/eth_goerli"
-  rpc_url: "https://data-seed-prebsc-1-s1.binance.org:8545/"
+  #rpc_url: "https://data-seed-prebsc-1-s1.binance.org:8545/"
   multi_call_contract: ""
   block_worker: 2
   tx_worker: 1
@@ -50,11 +50,9 @@ log:
     level: 5
   kafka:
     enable: false
-    topic: "huobi-test"
+    topic: "tx-arrived"
     kafka_servers:
-      - "kafka-1.huobidev.com:9092"
-      - "kafka-2.huobidev.com:9092"
-      - "kafka-3.huobidev.com:9092"
+      - "192.168.31.243:9092"
     level: 5
 
 balance:
@@ -85,12 +83,13 @@ erc20_tx:
 kafka:
   batch_block_size: 5
   producer_max: 5242880
+  topic: test1
   kafka_servers:
     - "127.0.0.1:9092"
 
 push_blk:
   buffer_size: 10
-  topic: blk_topic
+  topic: test1
 
 erc1155_tx:
   batch_block_size: 50

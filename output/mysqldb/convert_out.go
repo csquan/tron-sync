@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/starslabhq/chainmonitor/mtypes"
+	"github.com/chainmonitor/mtypes"
 )
 
 func convertOutBlocks(blocks []*Block) ([]*mtypes.Block, error) {

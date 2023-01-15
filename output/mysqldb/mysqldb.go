@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chainmonitor/mtypes"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/mtypes"
 	"xorm.io/xorm"
 	"xorm.io/xorm/log"
 )

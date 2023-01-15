@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/fetch"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/fetch"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
 )
 
 var env string

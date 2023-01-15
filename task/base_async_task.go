@@ -5,14 +5,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/db"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/subscribe"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/db"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
-	"github.com/starslabhq/chainmonitor/subscribe"
 )
 
 type BaseAsyncTask struct {

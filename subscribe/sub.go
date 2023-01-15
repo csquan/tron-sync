@@ -1,8 +1,8 @@
 package subscribe
 
 import (
+	"github.com/chainmonitor/mtypes"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/starslabhq/chainmonitor/mtypes"
 )
 
 type Subscriber interface {

@@ -220,3 +220,10 @@ type TokenPair struct {
 	Updated       time.Time `xorm:"updated"`
 	BlockNum      int64     `xorm:"block_num"`
 }
+
+type TxKakfa struct {
+	From      common.Address
+	To        common.Address
+	Amount    string
+	TokenAddr string
+}

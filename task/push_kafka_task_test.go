@@ -2,19 +2,19 @@ package task
 
 import (
 	"encoding/json"
+	"github.com/chainmonitor/mtypes"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/chainmonitor/output/mysqldb"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
 
 	//"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/Shopify/sarama"
-	"github.com/starslabhq/chainmonitor/ktypes"
 	"gotest.tools/assert"
 )
 
@@ -49,13 +49,10 @@ func consumerKafka(kafka_url string, topic string, blk_chan chan string) {
 		for m := range partitionConsumer.Messages() {
 			//fmt.Printf("key: %s, text: %s, offset: %d\n", string(m.Key), string(m.Value), m.Offset)
 			blk_chan <- string(m.Value)
-			blk := ktypes.Block{}
-			_ = json.Unmarshal(m.Value, &blk)
-			//fmt.Print(blk)
-			if lastpushheight != 0 && lastpushheight+1 != blk.Number {
-				logrus.Warnf("push kafka block height :%d error and last push height:%d", blk.Number, lastpushheight)
-			}
-			lastpushheight = blk.Number
+			tx := mtypes.TxKakfa{}
+			_ = json.Unmarshal(m.Value, &tx)
+			fmt.Print(tx)
+
 		}
 		wg.Done()
 	}

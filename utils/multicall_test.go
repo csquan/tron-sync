@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/config"
+	"github.com/chainmonitor/config"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"

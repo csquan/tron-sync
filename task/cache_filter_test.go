@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/output/mysqldb"
 )
 
 var dbtest *mysqldb.MysqlDB

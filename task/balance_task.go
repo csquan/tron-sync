@@ -8,16 +8,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/output/mysqldb"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/db"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/db"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/utils"
 )
 
 type BalanceTask struct {
@@ -257,10 +257,10 @@ func (b *BalanceTask) getBalances(balances []*mtypes.Balance, num uint64) {
 	wg.Wait()
 }
 
-//Clean the cache first, do not update task offset
-//There is a problem here. If the program is being
-//rolled back and the program is restarted, the data
-//that needs to be rolled back will be lost
+// Clean the cache first, do not update task offset
+// There is a problem here. If the program is being
+// rolled back and the program is restarted, the data
+// that needs to be rolled back will be lost
 func (b *BalanceTask) revertBlock(blk *mtypes.Block) {
 	b.balanceCache.clean()
 	b.handleBlock(blk)

@@ -94,6 +94,7 @@ type Kafka struct {
 	ProducerMax int `mapstructure:"producer_max"`
 	// Key         string   `mapstructure:"key"` //生产消费约定的key
 	Brokers []string `mapstructure:"kafka_servers"`
+	Topic   string   `mapstructure:"topic"`
 }
 
 type PushBlk struct {

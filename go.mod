@@ -1,4 +1,4 @@
-module github.com/starslabhq/chainmonitor
+module github.com/chainmonitor
 
 go 1.15
 

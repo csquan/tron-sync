@@ -3,9 +3,9 @@ package task
 import (
 	"testing"
 
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/mtypes"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/mtypes"
 )
 
 func TestQueue(t *testing.T) {

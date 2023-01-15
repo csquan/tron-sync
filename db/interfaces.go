@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
 	"xorm.io/xorm"
 )
 

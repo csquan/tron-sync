@@ -6,12 +6,12 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/chainmonitor/config"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/starslabhq/chainmonitor/config"
 )
 
 const multiCallABI = `

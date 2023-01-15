@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/chainmonitor/mtypes"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/starslabhq/chainmonitor/mtypes"
 )
 
 func ConvertInBlock(block *mtypes.Block) *Block {

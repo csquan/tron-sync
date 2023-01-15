@@ -7,13 +7,13 @@ import (
 	"sort"
 
 	"github.com/Shopify/sarama"
+	"github.com/chainmonitor/config"
+	"github.com/chainmonitor/db"
+	"github.com/chainmonitor/mtypes"
+	"github.com/chainmonitor/output/mysqldb"
+	"github.com/chainmonitor/subscribe"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/sirupsen/logrus"
-	"github.com/starslabhq/chainmonitor/config"
-	"github.com/starslabhq/chainmonitor/db"
-	"github.com/starslabhq/chainmonitor/mtypes"
-	"github.com/starslabhq/chainmonitor/output/mysqldb"
-	"github.com/starslabhq/chainmonitor/subscribe"
 )
 
 const BlockDelayTaskName = "block_send_delay"
