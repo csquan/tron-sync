@@ -222,8 +222,9 @@ type TokenPair struct {
 }
 
 type TxKakfa struct {
-	From      common.Address
-	To        common.Address
-	Amount    string
-	TokenAddr string
+	From       common.Address
+	To         common.Address
+	Amount     string
+	IsContract bool
+	TokenAddr  string
 }

@@ -1,7 +1,10 @@
 package task
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/chainmonitor/kafka"
+	"github.com/ethereum/go-ethereum/common"
 	"time"
 
 	"github.com/chainmonitor/output/mysqldb"
@@ -24,15 +27,26 @@ type BaseStorageTask struct {
 
 	stopChan chan interface{}
 	db       db.IDB
+	kafka    *kafka.PushKafkaService
 }
 
 func NewBaseStorageTask(config *config.Config, db db.IDB) *BaseStorageTask {
-	return &BaseStorageTask{
+	task := BaseStorageTask{
 		config:    config,
 		db:        db,
 		stopChan:  make(chan interface{}),
 		blockChan: make(chan *mtypes.Block, config.BaseStorage.BufferSize),
 	}
+	p, err := kafka.NewSyncProducer(config.Kafka)
+	if err != nil {
+		return nil
+	}
+	task.kafka, err = kafka.NewPushKafkaService(config, p)
+	if err != nil {
+		return nil
+	}
+	task.kafka.Topic = task.config.Kafka.Topic
+	return &task
 }
 
 func (b *BaseStorageTask) Start(s subscribe.Subscriber) {
@@ -173,6 +187,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		var (
 			blockdbs    []*mysqldb.Block
 			txdbs       []*mysqldb.TxDB
+			txkafkas    []*mtypes.TxKakfa
 			txLogs      []*mysqldb.TxLog
 			txInternals []*mysqldb.TxInternal
 			contracts   []*mysqldb.Contract
@@ -183,6 +198,16 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		for _, tx := range block.Txs {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
+
+			if tx.IsContract == false {
+				txKakfa := &mtypes.TxKakfa{
+					From:       common.HexToAddress(tx.From),
+					To:         common.HexToAddress(tx.To),
+					Amount:     tx.Value.String(),
+					IsContract: false,
+				}
+				txkafkas = append(txkafkas, txKakfa)
+			}
 
 			//tx_log
 			for _, tlog := range tx.EventLogs {
@@ -233,6 +258,18 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				logrus.Errorf("rollback session error:%v", err2)
 			}
 			return fmt.Errorf("db insert txs err:%v", err)
+		}
+		if len(txkafkas) > 0 {
+			//push tx to kafka
+			bb, err := json.Marshal(txkafkas)
+			if err != nil {
+				logrus.Warnf("Marshal txErc20s err:%v", err)
+			}
+
+			err = b.kafka.Pushkafka(bb)
+			if err != nil {
+				logrus.Error(err)
+			}
 		}
 
 		// save logs into databases

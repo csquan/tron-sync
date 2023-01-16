@@ -309,10 +309,11 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockTime:      blk.TimeStamp,
 				}
 				txKakfa := &mtypes.TxKakfa{
-					From:      sender,
-					To:        receiver,
-					Amount:    tokenCnt,
-					TokenAddr: addr,
+					From:       sender,
+					To:         receiver,
+					Amount:     tokenCnt,
+					IsContract: true,
+					TokenAddr:  addr,
 				}
 				txErc20s = append(txErc20s, txErc20)
 				txKakfkas = append(txKakfkas, txKakfa)
