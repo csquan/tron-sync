@@ -15,9 +15,8 @@ import (
 )
 
 var wg sync.WaitGroup
-var kafka_url = "127.0.0.1:9092"
-var topic = "test1"
-var db_url = "root:12345678@tcp(huobichain-dev-01.sinnet.huobiidc.com:3306)/heco_data_test?charset=utf8mb4"
+var kafka_url = "kafka.fat123.ml:9092"
+var topic = "tx-arrived"
 
 func consumerKafka(kafka_url string, topic string, blk_chan chan string) {
 
