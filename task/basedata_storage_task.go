@@ -201,10 +201,12 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 
 			if tx.IsContract == false {
 				txKakfa := &mtypes.TxKakfa{
-					From:       common.HexToAddress(tx.From),
-					To:         common.HexToAddress(tx.To),
-					Amount:     tx.Value.String(),
-					IsContract: false,
+					From:      common.HexToAddress(tx.From),
+					To:        common.HexToAddress(tx.To),
+					Amount:    tx.Value.String(),
+					TokenType: 1,
+					TxHash:    tx.Hash,
+					Chain:     "HUI",
 				}
 				txkafkas = append(txkafkas, txKakfa)
 			}

@@ -83,7 +83,7 @@ erc20_tx:
 kafka:
   batch_block_size: 5
   producer_max: 5242880
-  topic: tx-arrived
+  topic: tx-arrived1
   kafka_servers:
     - "kafka.fat123.ml:9092"
 

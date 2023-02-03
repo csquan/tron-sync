@@ -212,6 +212,14 @@ func (et *Erc20TxTask) getOrigin(erc20Infos []*mtypes.Erc20Info, height uint64) 
 	}
 }
 
+func (et *Erc20TxTask) GetContract(addr string) (uint8, error) {
+	info, err := et.db.GetErc20info(addr)
+	if err != nil {
+		return 0, err
+	}
+	return info.Decimals, nil
+}
+
 func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.Erc20Info, height uint64) {
 	utils.HandleErrorWithRetry(func() error {
 		st := time.Now()
@@ -308,13 +316,23 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockNum:       blk.Number,
 					BlockTime:      blk.TimeStamp,
 				}
-				txKakfa := &mtypes.TxKakfa{
-					From:       sender,
-					To:         receiver,
-					Amount:     tokenCnt,
-					IsContract: true,
-					TokenAddr:  addr,
+				//这里从db找到token精度
+				decimal, err := et.GetContract(addr)
+				if err != nil {
+					logrus.Error(err)
 				}
+
+				txKakfa := &mtypes.TxKakfa{
+					From:         sender,
+					To:           receiver,
+					Amount:       tokenCnt,
+					TokenType:    2,
+					TxHash:       tx.Hash,
+					Chain:        "HUI",
+					ContractAddr: addr,
+					Decimals:     decimal,
+				}
+
 				txErc20s = append(txErc20s, txErc20)
 				txKakfkas = append(txKakfkas, txKakfa)
 				if tlog.Addr != utils.ZeroAddress && !et.erc20infos.Contains(addr) {
