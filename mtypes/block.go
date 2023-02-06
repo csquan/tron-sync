@@ -222,12 +222,12 @@ type TokenPair struct {
 }
 
 type TxKakfa struct {
-	From         common.Address
-	To           common.Address
-	Amount       string
-	TokenType    uint8 //1-非ERC20 2-ERC20
-	TxHash       string
-	Chain        string
-	ContractAddr string
-	Decimals     uint8
+	From         common.Address `json:"from"`
+	To           common.Address `json:"to"`
+	Amount       string         `json:"amount"`
+	TokenType    uint8          `json:"token_type" //1-非ERC20 2-ERC20 `
+	TxHash       string         `json:"tx_hash"`
+	Chain        string         `json:"chain"`
+	ContractAddr string         `json:"contract_addr"`
+	Decimals     uint8          `json:"decimals"`
 }
