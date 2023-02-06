@@ -25,15 +25,17 @@ type BaseStorageTask struct {
 
 	curHeight uint64
 
-	stopChan chan interface{}
-	db       db.IDB
-	kafka    *kafka.PushKafkaService
+	stopChan  chan interface{}
+	db        db.IDB
+	monitorDb db.IDB
+	kafka     *kafka.PushKafkaService
 }
 
-func NewBaseStorageTask(config *config.Config, db db.IDB) *BaseStorageTask {
+func NewBaseStorageTask(config *config.Config, db db.IDB, monitorDb db.IDB) *BaseStorageTask {
 	task := BaseStorageTask{
 		config:    config,
 		db:        db,
+		monitorDb: monitorDb,
 		stopChan:  make(chan interface{}),
 		blockChan: make(chan *mtypes.Block, config.BaseStorage.BufferSize),
 	}
@@ -200,15 +202,23 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			txdbs = append(txdbs, txdb)
 
 			if tx.IsContract == false {
-				txKakfa := &mtypes.TxKakfa{
-					From:      common.HexToAddress(tx.From),
-					To:        common.HexToAddress(tx.To),
-					Amount:    tx.Value.String(),
-					TokenType: 1,
-					TxHash:    tx.Hash,
-					Chain:     "HUI",
+				//找到to地址关联账户的UID
+				uid, err := b.monitorDb.GetMonitorUID(tx.To)
+				if err != nil {
+					logrus.Error(err)
 				}
-				txkafkas = append(txkafkas, txKakfa)
+				if len(uid) > 0 {
+					txKakfa := &mtypes.TxKakfa{
+						From:      common.HexToAddress(tx.From),
+						To:        common.HexToAddress(tx.To),
+						UID:       uid,
+						Amount:    tx.Value.String(),
+						TokenType: 1,
+						TxHash:    tx.Hash,
+						Chain:     "HUI",
+					}
+					txkafkas = append(txkafkas, txKakfa)
+				}
 			}
 
 			//tx_log

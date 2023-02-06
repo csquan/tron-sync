@@ -28,9 +28,9 @@ type Erc1155Task struct {
 
 const Erc1155TaskName = "erc1155_basic"
 
-func NewErc1155Task(config *config.Config, client *rpc.Client, db db.IDB) (*Erc1155Task, error) {
+func NewErc1155Task(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*Erc1155Task, error) {
 	e := &Erc1155Task{}
-	base, err := newBase(Erc1155TaskName, config, client, db, config.Erc1155Tx.BufferSize, e.handleBlock,
+	base, err := newBase(Erc1155TaskName, config, client, db, monitorDb, config.Erc1155Tx.BufferSize, e.handleBlock,
 		e.fixHistoryData, e.revertBlock)
 	if err != nil {
 		return nil, err

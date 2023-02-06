@@ -7,6 +7,10 @@ output:
   retry_times: 5
   retry_interval: 300
 
+monitor:
+  db: "root:csquan253905@tcp(127.0.0.1:3306)/HuiCollect?charset=utf8mb4"
+
+
 fetch:
   rpc_url: "http://43.198.66.226:8545" #HUi
   #rpc_url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
@@ -25,7 +29,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 0
+  start_height: 2557720
   end_height: 0
 
 
@@ -83,7 +87,7 @@ erc20_tx:
 kafka:
   batch_block_size: 5
   producer_max: 5242880
-  topic: tx-arrived1
+  topic: tx-arrived2
   kafka_servers:
     - "kafka.fat123.ml:9092"
 

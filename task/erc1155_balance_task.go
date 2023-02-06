@@ -28,9 +28,9 @@ type Erc1155BalanceTask struct {
 
 const Erc1155BalanceTaskName = "erc1155_balance"
 
-func NewErc1155BalanceTask(config *config.Config, client *rpc.Client, db db.IDB) (*Erc1155BalanceTask, error) {
+func NewErc1155BalanceTask(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*Erc1155BalanceTask, error) {
 	b := &Erc1155BalanceTask{}
-	base, err := newBase(Erc1155BalanceTaskName, config, client, db, config.Erc1155Balance.BufferSize,
+	base, err := newBase(Erc1155BalanceTaskName, config, client, db, monitorDb, config.Erc1155Balance.BufferSize,
 		b.handleBlock, b.fixHistoryData, b.revertBlock)
 	if err != nil {
 		return nil, err

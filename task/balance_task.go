@@ -29,14 +29,14 @@ type BalanceTask struct {
 
 const BalanceTaskName = "native_balance"
 
-func NewBalanceTask(config *config.Config, client *rpc.Client, db db.IDB) (*BalanceTask, error) {
+func NewBalanceTask(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*BalanceTask, error) {
 
 	b := &BalanceTask{
 		//latestBlockNumOnstart: latestBlockNumOnstart,
 		// balanceCache:          cache,
 	}
 
-	base, err := newBase(BalanceTaskName, config, client, db, config.Balance.BufferSize,
+	base, err := newBase(BalanceTaskName, config, client, db, monitorDb, config.Balance.BufferSize,
 		b.handleBlock, b.fixHistoryData, b.revertBlock)
 	if err != nil {
 		return nil, err

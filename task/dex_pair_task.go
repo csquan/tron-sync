@@ -46,10 +46,10 @@ type DexPairTask struct {
 	cache    *lru.Cache
 }
 
-func NewDexPairTask(config *config.Config, c *rpc.Client, db db.IDB) (*DexPairTask, error) {
+func NewDexPairTask(config *config.Config, c *rpc.Client, db db.IDB, monitorDb db.IDB) (*DexPairTask, error) {
 	t := &DexPairTask{}
 	taskConf := config.DexPair
-	base, err := newBase(DexPairTaskName, config, c, db, taskConf.BufferSize, t.handleBlock, t.fixHistoryData, t.revertBlock)
+	base, err := newBase(DexPairTaskName, config, c, db, monitorDb, taskConf.BufferSize, t.handleBlock, t.fixHistoryData, t.revertBlock)
 	if err != nil {
 		logrus.Fatalf("base err:%v", err)
 		return nil, err

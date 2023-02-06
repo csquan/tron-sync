@@ -224,6 +224,7 @@ type TokenPair struct {
 type TxKakfa struct {
 	From         common.Address `json:"from"`
 	To           common.Address `json:"to"`
+	UID          string         `json:"uid"`
 	Amount       string         `json:"amount"`
 	TokenType    uint8          `json:"token_type" //1-非ERC20 2-ERC20 `
 	TxHash       string         `json:"tx_hash"`

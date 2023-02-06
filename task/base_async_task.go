@@ -28,8 +28,8 @@ type BaseAsyncTask struct {
 	bufferSize int
 	cache      *list.List
 
-	db db.IDB
-
+	db           db.IDB
+	monitorDb    db.IDB
 	curHeight    uint64
 	latestHeight uint64
 
@@ -41,7 +41,7 @@ type BaseAsyncTask struct {
 	stopChan         chan interface{}
 }
 
-func newBase(taskName string, config *config.Config, client *rpc.Client, db db.IDB,
+func newBase(taskName string, config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB,
 	bufferSize int, consumeFunc func(*mtypes.Block), compensationFunc func(),
 	revertFunc func(*mtypes.Block)) (b *BaseAsyncTask, err error) {
 
@@ -50,6 +50,7 @@ func newBase(taskName string, config *config.Config, client *rpc.Client, db db.I
 		config:    config,
 		client:    client,
 		db:        db,
+		monitorDb: monitorDb,
 		blockChan: make(chan *mtypes.Block, bufferSize),
 
 		bufferSize: bufferSize,

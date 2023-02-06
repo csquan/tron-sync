@@ -232,3 +232,10 @@ type TokenPair struct {
 	Updated  time.Time `xorm:"updated"`
 	BlockNum int64     `xorm:"block_num"`
 }
+
+type Monitor struct {
+	Uid   string `xorm:"f_uid"`
+	AppId string `xorm:"f_appid"`
+	Chain string `xorm:"f_chain"`
+	Addr  string `xorm:"f_addr"`
+}

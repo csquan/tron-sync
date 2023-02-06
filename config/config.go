@@ -18,6 +18,10 @@ type OutputConf struct {
 	RetryInterval    time.Duration
 }
 
+type MonitorConf struct {
+	DB string `mapstructure:"db"` //DB 连接信息
+}
+
 func (o *OutputConf) init() {
 	o.RetryInterval = time.Duration(o.RetryIntervalInt) * time.Millisecond
 }
@@ -64,6 +68,7 @@ type Config struct {
 	AppName  string `mapstructure:"app_name"`
 
 	OutPut         OutputConf     `mapstructure:"output"`
+	Monitor        MonitorConf    `mapstructure:"monitor"`
 	Fetch          FetchConf      `mapstructure:"fetch"`
 	Tasks          []string       `mapstructure:"tasks"`
 	LogConf        Log            `mapstructure:"log"`

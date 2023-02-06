@@ -43,14 +43,14 @@ func NewSyncProducer(config config.Kafka) (pro sarama.SyncProducer, e error) {
 	return p, err
 }
 
-func NewPushKafkaTask(config *config.Config, client *rpc.Client, db db.IDB, p sarama.SyncProducer) (*PushKafkaTask, error) {
+func NewPushKafkaTask(config *config.Config, client *rpc.Client, db db.IDB, p sarama.SyncProducer, monitorDb db.IDB) (*PushKafkaTask, error) {
 	b := &PushKafkaTask{}
 
 	b.topic = config.PushBlk.Topic
 
 	b.producer = p
 
-	base, err := newBase(PushKafkaTaskName, config, client, db, config.PushBlk.BufferSize,
+	base, err := newBase(PushKafkaTaskName, config, client, db, monitorDb, config.PushBlk.BufferSize,
 		b.handleBlock, b.fixHistoryData, b.revertBlock)
 	if err != nil {
 		return nil, err

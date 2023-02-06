@@ -31,9 +31,9 @@ type Erc721Task struct {
 
 const Erc721TaskName = "erc721_basic"
 
-func NewErc721Task(config *config.Config, client *rpc.Client, db db.IDB) (*Erc721Task, error) {
+func NewErc721Task(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*Erc721Task, error) {
 	e := &Erc721Task{}
-	base, err := newBase(Erc721TaskName, config, client, db, config.Balance.BufferSize, e.handleBlock,
+	base, err := newBase(Erc721TaskName, config, client, db, monitorDb, config.Balance.BufferSize, e.handleBlock,
 		e.fixHistoryData, e.revertBlock)
 	if err != nil {
 		return nil, err

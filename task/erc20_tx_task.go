@@ -34,9 +34,9 @@ type Erc20TxTask struct {
 	kafka      *kafka.PushKafkaService
 }
 
-func NewErc20TxTask(config *config.Config, client *rpc.Client, db db.IDB) (*Erc20TxTask, error) {
+func NewErc20TxTask(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*Erc20TxTask, error) {
 	et := &Erc20TxTask{}
-	base, err := newBase(Erc20TxTaskName, config, client, db, config.Balance.BufferSize,
+	base, err := newBase(Erc20TxTaskName, config, client, db, monitorDb, config.Balance.BufferSize,
 		et.handleBlock, et.fixHistoryData, et.revertBlock)
 	if err != nil {
 		return nil, err
@@ -279,8 +279,8 @@ func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.
 func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 	var txErc20s []*mysqldb.TxErc20
 	var erc20Infos []*mtypes.Erc20Info
-	var txKakfkas []*mtypes.TxKakfa
 	var blkCount int = 0
+	var txKakfas []*mtypes.TxKakfa
 
 	for i := 0; i < len(blks); i++ {
 		blk := blks[i]
@@ -316,25 +316,34 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockNum:       blk.Number,
 					BlockTime:      blk.TimeStamp,
 				}
-				//这里从db找到token精度
-				decimal, err := et.GetContract(addr)
+				//找到to地址关联账户的UID
+				uid, err := et.monitorDb.GetMonitorUID(receiver.String())
 				if err != nil {
 					logrus.Error(err)
 				}
+				if len(uid) > 0 {
+					//这里从db找到token精度
+					decimal, err := et.GetContract(addr)
+					if err != nil {
+						logrus.Error(err)
+					}
 
-				txKakfa := &mtypes.TxKakfa{
-					From:         sender,
-					To:           receiver,
-					Amount:       tokenCnt,
-					TokenType:    2,
-					TxHash:       tx.Hash,
-					Chain:        "HUI",
-					ContractAddr: addr,
-					Decimals:     decimal,
+					txKakfa := &mtypes.TxKakfa{
+						From:         sender,
+						To:           receiver,
+						UID:          uid,
+						Amount:       tokenCnt,
+						TokenType:    2,
+						TxHash:       tx.Hash,
+						Chain:        "HUI",
+						ContractAddr: addr,
+						Decimals:     decimal,
+					}
+					txKakfas = append(txKakfas, txKakfa)
 				}
 
 				txErc20s = append(txErc20s, txErc20)
-				txKakfkas = append(txKakfkas, txKakfa)
+
 				if tlog.Addr != utils.ZeroAddress && !et.erc20infos.Contains(addr) {
 					// st := time.Now()
 					ethAddr := common.HexToAddress(addr)
@@ -349,16 +358,18 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					// log.Printf("erc20info:%v", erc20Info)
 					// logrus.Infof("erc20 info cost:%d", time.Since(st)/time.Millisecond)
 				}
-				//push erc20tx to kafka KakfaTx
-				b, err := json.Marshal(txKakfkas)
-				if err != nil {
-					logrus.Warnf("Marshal txErc20s err:%v", err)
-				}
+			}
+		}
+		if len(txKakfas) > 0 {
+			//push erc20tx to kafka KakfaTx
+			b, err := json.Marshal(txKakfas)
+			if err != nil {
+				logrus.Warnf("Marshal txErc20s err:%v", err)
+			}
 
-				err = et.kafka.Pushkafka(b)
-				if err != nil {
-					logrus.Error(err)
-				}
+			err = et.kafka.Pushkafka(b)
+			if err != nil {
+				logrus.Error(err)
 			}
 		}
 		if blkCount >= et.config.Erc20Tx.MaxBlockCount || len(txErc20s) >= et.config.Erc20Tx.MaxTxCount || i == len(blks)-1 {

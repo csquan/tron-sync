@@ -29,9 +29,9 @@ type Erc20BalanceTask struct {
 
 const Erc20BalanceTaskName = "erc20_balance"
 
-func NewErc20BalanceTask(config *config.Config, client *rpc.Client, db db.IDB) (*Erc20BalanceTask, error) {
+func NewErc20BalanceTask(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) (*Erc20BalanceTask, error) {
 	b := &Erc20BalanceTask{}
-	base, err := newBase(Erc20BalanceTaskName, config, client, db, config.Erc20Balance.BufferSize,
+	base, err := newBase(Erc20BalanceTaskName, config, client, db, monitorDb, config.Erc20Balance.BufferSize,
 		b.handleBlock, b.fixHistoryData, b.revertBlock)
 	if err != nil {
 		return nil, err

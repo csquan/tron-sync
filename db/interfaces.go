@@ -16,6 +16,8 @@ type IReader interface {
 	GetErc1155Balance(address string, contractAddr string, tokenID string) (*mysqldb.BalanceErc1155, error)
 	GetBlockByNumAndState(num uint64, state int) (*mysqldb.Block, error)
 	GetErc20info(addr string) (*mysqldb.Erc20Info, error)
+
+	GetMonitorUID(to string) (string, error)
 }
 
 type IWriter interface {

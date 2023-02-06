@@ -22,8 +22,9 @@ import (
 )
 
 type Process struct {
-	config *config.Config
-	db     db.IDB
+	config    *config.Config
+	db        db.IDB
+	monitorDb db.IDB
 
 	client  *rpc.Client
 	fetcher *fetch.Fetcher
@@ -44,6 +45,11 @@ func NewProcess(config *config.Config) (*Process, error) {
 	if err != nil {
 		kafkalog.Fatal(fmt.Errorf("create eth client err:%v", err))
 	}
+	monitorOutput, err := mysqldb.NewMysqlDb(config.Monitor.DB, config.OutPut.SqlBatch)
+	if err != nil {
+		logrus.Fatalf("create monitor mysql output err:%v", err)
+	}
+
 	mysqlOutput, err := mysqldb.NewMysqlDb(config.OutPut.DB, config.OutPut.SqlBatch)
 	if err != nil {
 		logrus.Fatalf("create mysql output err:%v", err)
@@ -61,10 +67,11 @@ func NewProcess(config *config.Config) (*Process, error) {
 	}
 
 	p := &Process{
-		config:  config,
-		db:      mysqlOutput,
-		client:  client,
-		fetcher: f,
+		config:    config,
+		db:        mysqlOutput,
+		monitorDb: monitorOutput,
+		client:    client,
+		fetcher:   f,
 	}
 
 	return p, nil
@@ -110,7 +117,7 @@ func (p *Process) Run() {
 }
 
 func allTasks(p *Process) (tasks []task.ITask, err error) {
-	baseData := task.NewBaseStorageTask(p.config, p.db)
+	baseData := task.NewBaseStorageTask(p.config, p.db, p.monitorDb)
 	tasks = []task.ITask{baseData}
 	//context := context.Background()
 
@@ -122,26 +129,26 @@ func allTasks(p *Process) (tasks []task.ITask, err error) {
 		var t task.ITask
 		switch taskName {
 		case task.BalanceTaskName:
-			t, err = task.NewBalanceTask(p.config, p.client, p.db)
+			t, err = task.NewBalanceTask(p.config, p.client, p.db, p.monitorDb)
 		case task.Erc20TxTaskName:
-			t, err = task.NewErc20TxTask(p.config, p.client, p.db)
+			t, err = task.NewErc20TxTask(p.config, p.client, p.db, p.monitorDb)
 		case task.Erc20BalanceTaskName:
-			t, err = task.NewErc20BalanceTask(p.config, p.client, p.db)
+			t, err = task.NewErc20BalanceTask(p.config, p.client, p.db, p.monitorDb)
 		case task.Erc721TaskName:
-			t, err = task.NewErc721Task(p.config, p.client, p.db)
+			t, err = task.NewErc721Task(p.config, p.client, p.db, p.monitorDb)
 		case task.DexPairTaskName:
-			t, err = task.NewDexPairTask(p.config, p.client, p.db)
+			t, err = task.NewDexPairTask(p.config, p.client, p.db, p.monitorDb)
 		case task.Erc1155TaskName:
-			t, err = task.NewErc1155Task(p.config, p.client, p.db)
+			t, err = task.NewErc1155Task(p.config, p.client, p.db, p.monitorDb)
 		case task.Erc1155BalanceTaskName:
-			t, err = task.NewErc1155BalanceTask(p.config, p.client, p.db)
+			t, err = task.NewErc1155BalanceTask(p.config, p.client, p.db, p.monitorDb)
 		case task.PushKafkaTaskName:
 			producer, err0 := task.NewSyncProducer(p.config.Kafka)
 			if err != nil {
 				logrus.Error(err0)
 				return nil, fmt.Errorf("new kafka produer err:%v", err0)
 			}
-			t, err = task.NewPushKafkaTask(p.config, p.client, p.db, producer)
+			t, err = task.NewPushKafkaTask(p.config, p.client, p.db, producer, p.monitorDb)
 		case task.BlockDelayTaskName:
 			producer, err0 := task.NewSyncProducer(p.config.Kafka)
 			if err != nil {
