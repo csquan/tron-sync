@@ -203,11 +203,14 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 
 			if tx.IsContract == false {
 				//找到to地址关联账户的UID
+				logrus.Info("tx arriaved++")
 				uid, err := b.monitorDb.GetMonitorUID(tx.To)
 				if err != nil {
+					logrus.Info("get uid error")
 					logrus.Error(err)
 				}
 				if len(uid) > 0 {
+					logrus.Info("get kafka data ++")
 					txKakfa := &mtypes.TxKakfa{
 						From:      common.HexToAddress(tx.From),
 						To:        common.HexToAddress(tx.To),
@@ -277,7 +280,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if err != nil {
 				logrus.Warnf("Marshal txErc20s err:%v", err)
 			}
-			
+
 			entool, err := utils.EnTool(b.config.Ery.PUB)
 			if err != nil {
 				logrus.Error(err)
@@ -292,6 +295,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if err != nil {
 				logrus.Error(err)
 			}
+			logrus.Info("push kafka success ++")
 		}
 
 		// save logs into databases

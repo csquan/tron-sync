@@ -42,7 +42,7 @@ test: style cilint
 	go test -cover ./...
 
 server: clean
-	${CROSS_COMPILE} go build -o bin/linux-amd64-Hui-sync ${PKG_TAG} main.go
+	${CROSS_COMPILE} go build -o bin/linux-amd64-hui-sync ${PKG_TAG} main.go
 
 comp_balance_server:
 	${CROSS_COMPILE} go build -o bin/comp_balance ${PKG_TAG} tools/compensation/*.go

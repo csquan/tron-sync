@@ -397,11 +397,10 @@ func (db *MysqlDB) GetErc1155Balance(address string, contractAddr string, tokenI
 // 查询to地址，得到对应的UID
 func (db *MysqlDB) GetMonitorUID(to string) (string, error) {
 	monitor := &Monitor{}
-	ok, err := db.engine.Table("t_monitor").Where("f_addr = ? ", to).Get(monitor)
+	ok, err := db.engine.Table("t_monitor").Where("f_addr = ?", to).Limit(1).Get(monitor)
 	if err != nil {
 		return "", err
 	}
-
 	if !ok {
 		return "", nil
 	}

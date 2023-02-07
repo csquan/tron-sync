@@ -233,9 +233,17 @@ type TokenPair struct {
 	BlockNum int64     `xorm:"block_num"`
 }
 
+type Base struct {
+	ID        uint64    `xorm:"f_id not null pk autoincr bigint(20)" gorm:"primary_key"`
+	CreatedAt time.Time `xorm:"created f_created_at"`
+	UpdatedAt time.Time `xorm:"updated f_updated_at"`
+}
+
 type Monitor struct {
-	Uid   string `xorm:"f_uid"`
-	AppId string `xorm:"f_appid"`
-	Chain string `xorm:"f_chain"`
-	Addr  string `xorm:"f_addr"`
+	*Base  `xorm:"extends"`
+	Addr   string `xorm:"f_addr"`
+	Height string `xorm:"f_height"`
+	Chain  string `xorm:"f_chain"`
+	Uid    string `xorm:"f_uid"`
+	AppId  string `xorm:"f_appid"`
 }

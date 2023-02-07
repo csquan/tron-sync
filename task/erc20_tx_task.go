@@ -317,7 +317,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockTime:      blk.TimeStamp,
 				}
 				//找到to地址关联账户的UID
-				uid, err := et.monitorDb.GetMonitorUID(receiver.String())
+				uid, err := et.monitorDb.GetMonitorUID(strings.ToLower(receiver.String()))
 				if err != nil {
 					logrus.Error(err)
 				}
