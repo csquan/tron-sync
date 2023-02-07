@@ -10,6 +10,8 @@ output:
 monitor:
   db: "root:csquan253905@tcp(127.0.0.1:3306)/HuiCollect?charset=utf8mb4"
 
+ery:
+  pub:  "03d26850e7f13c8092381f5a9497ad4be3907d5d12fd01a89c9c0533f46d829ec4"
 
 fetch:
   rpc_url: "http://43.198.66.226:8545" #HUi
@@ -29,7 +31,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 2557720
+  start_height: 2597867
   end_height: 0
 
 

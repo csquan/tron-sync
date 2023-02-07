@@ -368,7 +368,17 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 				logrus.Warnf("Marshal txErc20s err:%v", err)
 			}
 
-			err = et.kafka.Pushkafka(b)
+			entool, err := utils.EnTool(et.config.Ery.PUB)
+			if err != nil {
+				logrus.Error(err)
+			}
+			//加密
+			out, err := entool.ECCEncrypt(b)
+			if err != nil {
+				logrus.Error(err)
+			}
+
+			err = et.kafka.Pushkafka(out)
 			if err != nil {
 				logrus.Error(err)
 			}

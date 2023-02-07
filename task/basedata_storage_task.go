@@ -277,8 +277,18 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if err != nil {
 				logrus.Warnf("Marshal txErc20s err:%v", err)
 			}
+			
+			entool, err := utils.EnTool(b.config.Ery.PUB)
+			if err != nil {
+				logrus.Error(err)
+			}
+			//加密
+			out, err := entool.ECCEncrypt(bb)
+			if err != nil {
+				logrus.Error(err)
+			}
 
-			err = b.kafka.Pushkafka(bb)
+			err = b.kafka.Pushkafka(out)
 			if err != nil {
 				logrus.Error(err)
 			}

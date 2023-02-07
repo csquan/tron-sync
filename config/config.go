@@ -22,6 +22,10 @@ type MonitorConf struct {
 	DB string `mapstructure:"db"` //DB 连接信息
 }
 
+type EryConf struct {
+	PUB string `mapstructure:"pub"` //DB 连接信息
+}
+
 func (o *OutputConf) init() {
 	o.RetryInterval = time.Duration(o.RetryIntervalInt) * time.Millisecond
 }
@@ -67,8 +71,10 @@ type Config struct {
 	ProfPort int    `mapstructure:"prof_port"`
 	AppName  string `mapstructure:"app_name"`
 
-	OutPut         OutputConf     `mapstructure:"output"`
-	Monitor        MonitorConf    `mapstructure:"monitor"`
+	OutPut  OutputConf  `mapstructure:"output"`
+	Monitor MonitorConf `mapstructure:"monitor"`
+	Ery     EryConf     `mapstructure:"ery"`
+
 	Fetch          FetchConf      `mapstructure:"fetch"`
 	Tasks          []string       `mapstructure:"tasks"`
 	LogConf        Log            `mapstructure:"log"`
