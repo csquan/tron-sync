@@ -231,4 +231,5 @@ type TxKakfa struct {
 	Chain        string         `json:"chain"`
 	ContractAddr string         `json:"contract_addr"`
 	Decimals     uint8          `json:"decimals"`
+	AssetSymbol  string         `json:"assetSymbol"`
 }

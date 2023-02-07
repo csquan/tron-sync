@@ -212,12 +212,12 @@ func (et *Erc20TxTask) getOrigin(erc20Infos []*mtypes.Erc20Info, height uint64) 
 	}
 }
 
-func (et *Erc20TxTask) GetContract(addr string) (uint8, error) {
+func (et *Erc20TxTask) GetContractInfo(addr string) (*mysqldb.Erc20Info, error) {
 	info, err := et.db.GetErc20info(addr)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return info.Decimals, nil
+	return info, nil
 }
 
 func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.Erc20Info, height uint64) {
@@ -323,7 +323,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 				}
 				if len(uid) > 0 {
 					//这里从db找到token精度
-					decimal, err := et.GetContract(addr)
+					info, err := et.GetContractInfo(addr)
 					if err != nil {
 						logrus.Error(err)
 					}
@@ -337,7 +337,8 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						TxHash:       tx.Hash,
 						Chain:        "HUI",
 						ContractAddr: addr,
-						Decimals:     decimal,
+						Decimals:     info.Decimals,
+						AssetSymbol:  info.Symbol,
 					}
 					txKakfas = append(txKakfas, txKakfa)
 				}

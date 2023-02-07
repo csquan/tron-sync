@@ -24,7 +24,6 @@ var topic = "test_topic"
 var db_url = "root:12345678@tcp(huobichain-dev-01.sinnet.huobiidc.com:3306)/heco_data_test?charset=utf8mb4"
 
 func consumerKafka(kafka_url string, topic string, blk_chan chan string) {
-
 	consumer, err := sarama.NewConsumer([]string{kafka_url}, nil)
 	if err != nil {
 		fmt.Println("consumer connect err:", err)
