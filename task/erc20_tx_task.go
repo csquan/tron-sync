@@ -305,6 +305,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					tokenCnt = tokenCnt[:65]
 				}
 				addr := tlog.Addr
+
 				txErc20 := &mysqldb.TxErc20{
 					Hash:           txhash,
 					Addr:           strings.ToLower(addr),
@@ -329,17 +330,21 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					}
 
 					txKakfa := &mtypes.TxKakfa{
-						From:         sender,
-						To:           receiver,
-						UID:          uid,
-						Amount:       tokenCnt,
-						TokenType:    2,
-						TxHash:       tx.Hash,
-						Chain:        "HUI",
-						ContractAddr: addr,
-						Decimals:     info.Decimals,
-						AssetSymbol:  info.Symbol,
+						From:           sender,
+						To:             receiver,
+						UID:            uid,
+						Amount:         tokenCnt,
+						TokenType:      2,
+						TxHash:         tx.Hash,
+						Chain:          "HUI",
+						ContractAddr:   addr,
+						Decimals:       info.Decimals,
+						AssetSymbol:    info.Symbol,
+						TxHeight:       blk.Number,
+						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
 					}
+					//fmt.Println(txKakfa.TxHeight)
+					//fmt.Println(txKakfa.CurChainHeight)
 					txKakfas = append(txKakfas, txKakfa)
 				}
 

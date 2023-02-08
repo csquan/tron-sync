@@ -27,14 +27,14 @@ fetch:
   tx_worker: 1
   tx_batch: 1
   block_batch: 2
-  blocks_delay: 3
+  blocks_delay: 6
   block_wait_time: 3000
   is_deal_internal: false
   fetch_batch: 32
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 2603048
+  start_height: 2637208
   end_height: 0
 
 

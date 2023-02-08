@@ -212,13 +212,15 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				if len(uid) > 0 {
 					logrus.Info("get kafka data ++")
 					txKakfa := &mtypes.TxKakfa{
-						From:      common.HexToAddress(tx.From),
-						To:        common.HexToAddress(tx.To),
-						UID:       uid,
-						Amount:    tx.Value.String(),
-						TokenType: 1,
-						TxHash:    tx.Hash,
-						Chain:     "HUI",
+						From:           common.HexToAddress(tx.From),
+						To:             common.HexToAddress(tx.To),
+						UID:            uid,
+						Amount:         tx.Value.String(),
+						TokenType:      1,
+						TxHash:         tx.Hash,
+						Chain:          "HUI",
+						TxHeight:       block.Number,
+						CurChainHeight: block.Number + b.config.Fetch.BlocksDelay,
 					}
 					txkafkas = append(txkafkas, txKakfa)
 				}
