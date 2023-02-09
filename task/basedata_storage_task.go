@@ -189,7 +189,6 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		var (
 			blockdbs    []*mysqldb.Block
 			txdbs       []*mysqldb.TxDB
-			txkafkas    []*mtypes.TxKakfa
 			txLogs      []*mysqldb.TxLog
 			txInternals []*mysqldb.TxInternal
 			contracts   []*mysqldb.Contract
@@ -219,10 +218,31 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 						TokenType:      1,
 						TxHash:         tx.Hash,
 						Chain:          "HUI",
+						AssetSymbol:    "hui",
 						TxHeight:       block.Number,
 						CurChainHeight: block.Number + b.config.Fetch.BlocksDelay,
 					}
-					txkafkas = append(txkafkas, txKakfa)
+					//push tx to kafka
+					bb, err := json.Marshal(txKakfa)
+					if err != nil {
+						logrus.Warnf("Marshal txErc20s err:%v", err)
+					}
+
+					entool, err := utils.EnTool(b.config.Ery.PUB)
+					if err != nil {
+						logrus.Error(err)
+					}
+					//加密
+					out, err := entool.ECCEncrypt(bb)
+					if err != nil {
+						logrus.Error(err)
+					}
+
+					err = b.kafka.Pushkafka(out)
+					if err != nil {
+						logrus.Error(err)
+					}
+					logrus.Info("push kafka success ++")
 				}
 			}
 
@@ -275,29 +295,6 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				logrus.Errorf("rollback session error:%v", err2)
 			}
 			return fmt.Errorf("db insert txs err:%v", err)
-		}
-		if len(txkafkas) > 0 {
-			//push tx to kafka
-			bb, err := json.Marshal(txkafkas)
-			if err != nil {
-				logrus.Warnf("Marshal txErc20s err:%v", err)
-			}
-
-			entool, err := utils.EnTool(b.config.Ery.PUB)
-			if err != nil {
-				logrus.Error(err)
-			}
-			//加密
-			out, err := entool.ECCEncrypt(bb)
-			if err != nil {
-				logrus.Error(err)
-			}
-
-			err = b.kafka.Pushkafka(out)
-			if err != nil {
-				logrus.Error(err)
-			}
-			logrus.Info("push kafka success ++")
 		}
 
 		// save logs into databases

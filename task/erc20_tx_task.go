@@ -280,7 +280,6 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 	var txErc20s []*mysqldb.TxErc20
 	var erc20Infos []*mtypes.Erc20Info
 	var blkCount int = 0
-	var txKakfas []*mtypes.TxKakfa
 
 	for i := 0; i < len(blks); i++ {
 		blk := blks[i]
@@ -343,9 +342,26 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						TxHeight:       blk.Number,
 						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
 					}
-					//fmt.Println(txKakfa.TxHeight)
-					//fmt.Println(txKakfa.CurChainHeight)
-					txKakfas = append(txKakfas, txKakfa)
+					//push kafka
+					b, err := json.Marshal(txKakfa)
+					if err != nil {
+						logrus.Warnf("Marshal txErc20s err:%v", err)
+					}
+
+					entool, err := utils.EnTool(et.config.Ery.PUB)
+					if err != nil {
+						logrus.Error(err)
+					}
+					//加密
+					out, err := entool.ECCEncrypt(b)
+					if err != nil {
+						logrus.Error(err)
+					}
+
+					err = et.kafka.Pushkafka(out)
+					if err != nil {
+						logrus.Error(err)
+					}
 				}
 
 				txErc20s = append(txErc20s, txErc20)
@@ -364,28 +380,6 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					// log.Printf("erc20info:%v", erc20Info)
 					// logrus.Infof("erc20 info cost:%d", time.Since(st)/time.Millisecond)
 				}
-			}
-		}
-		if len(txKakfas) > 0 {
-			//push erc20tx to kafka KakfaTx
-			b, err := json.Marshal(txKakfas)
-			if err != nil {
-				logrus.Warnf("Marshal txErc20s err:%v", err)
-			}
-
-			entool, err := utils.EnTool(et.config.Ery.PUB)
-			if err != nil {
-				logrus.Error(err)
-			}
-			//加密
-			out, err := entool.ECCEncrypt(b)
-			if err != nil {
-				logrus.Error(err)
-			}
-
-			err = et.kafka.Pushkafka(out)
-			if err != nil {
-				logrus.Error(err)
 			}
 		}
 		if blkCount >= et.config.Erc20Tx.MaxBlockCount || len(txErc20s) >= et.config.Erc20Tx.MaxTxCount || i == len(blks)-1 {
