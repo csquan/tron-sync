@@ -10,8 +10,9 @@ import (
 )
 
 type PushKafkaService struct {
-	Producer sarama.SyncProducer
-	Topic    string
+	Producer   sarama.SyncProducer
+	TopicTx    string
+	TopicMatch string
 }
 
 func NewSyncProducer(config config.Kafka) (pro sarama.SyncProducer, e error) {
@@ -32,7 +33,8 @@ func NewSyncProducer(config config.Kafka) (pro sarama.SyncProducer, e error) {
 func NewPushKafkaService(config *config.Config, p sarama.SyncProducer) (*PushKafkaService, error) {
 	b := &PushKafkaService{}
 
-	b.Topic = config.PushBlk.Topic
+	b.TopicTx = config.Kafka.TopicTx
+	b.TopicMatch = config.Kafka.TopicMatch
 
 	b.Producer = p
 

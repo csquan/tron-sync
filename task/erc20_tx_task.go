@@ -59,7 +59,8 @@ func NewErc20TxTask(config *config.Config, client *rpc.Client, db db.IDB, monito
 	if err != nil {
 		return nil, err
 	}
-	et.kafka.Topic = et.config.Kafka.Topic
+	et.kafka.TopicTx = et.config.Kafka.TopicTx
+	et.kafka.TopicMatch = et.config.Kafka.TopicMatch
 	return et, nil
 }
 
@@ -276,7 +277,7 @@ func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.
 	}, et.config.OutPut.RetryTimes, et.config.OutPut.RetryInterval)
 }
 
-func (et *Erc20TxTask) PushKafka(bb []byte) error {
+func (et *Erc20TxTask) PushKafka(bb []byte, topic string) error {
 	entool, err := utils.EnTool(et.config.Ery.PUB)
 	if err != nil {
 		return err
@@ -287,7 +288,7 @@ func (et *Erc20TxTask) PushKafka(bb []byte) error {
 		return err
 	}
 
-	err = et.kafka.Pushkafka(out, et.kafka.Topic)
+	err = et.kafka.Pushkafka(out, topic)
 	return err
 }
 
@@ -364,7 +365,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					}
 
 					//push tx to kafka
-					err = et.PushKafka(bb)
+					err = et.PushKafka(bb, et.kafka.TopicMatch)
 
 					if err != nil {
 						logrus.Error(err)

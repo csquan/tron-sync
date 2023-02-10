@@ -47,7 +47,8 @@ func NewBaseStorageTask(config *config.Config, db db.IDB, monitorDb db.IDB) *Bas
 	if err != nil {
 		return nil
 	}
-	task.kafka.Topic = task.config.Kafka.Topic
+	task.kafka.TopicTx = task.config.Kafka.TopicTx
+	task.kafka.TopicMatch = task.config.Kafka.TopicMatch
 	return &task
 }
 
@@ -182,7 +183,7 @@ func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, Cu
 	txpush.CurChainHeight = CurChainHeight
 	return &txpush
 }
-func (b *BaseStorageTask) PushKafka(bb []byte) error {
+func (b *BaseStorageTask) PushKafka(bb []byte, topic string) error {
 	entool, err := utils.EnTool(b.config.Ery.PUB)
 	if err != nil {
 		return err
@@ -193,7 +194,7 @@ func (b *BaseStorageTask) PushKafka(bb []byte) error {
 		return err
 	}
 
-	err = b.kafka.Pushkafka(out, b.kafka.Topic)
+	err = b.kafka.Pushkafka(out, topic)
 	return err
 }
 
@@ -250,7 +251,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				}
 
 				//push tx to kafka
-				err = b.PushKafka(bb)
+				err = b.PushKafka(bb, b.kafka.TopicMatch)
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -284,7 +285,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 					}
 
 					//push tx to kafka
-					err = b.PushKafka(bb)
+					err = b.PushKafka(bb, b.kafka.TopicTx)
 					if err != nil {
 						logrus.Error(err)
 					}

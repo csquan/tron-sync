@@ -106,8 +106,9 @@ type Kafka struct {
 	// BatchBlockCount int      `mapstructure:"batch_block_size"`
 	ProducerMax int `mapstructure:"producer_max"`
 	// Key         string   `mapstructure:"key"` //生产消费约定的key
-	Brokers []string `mapstructure:"kafka_servers"`
-	Topic   string   `mapstructure:"topic"`
+	Brokers    []string `mapstructure:"kafka_servers"`
+	TopicTx    string   `mapstructure:"topic_tx"`
+	TopicMatch string   `mapstructure:"topic_match"`
 }
 
 type PushBlk struct {
