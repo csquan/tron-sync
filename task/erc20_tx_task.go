@@ -365,7 +365,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					}
 
 					//push tx to kafka
-					err = et.PushKafka(bb, et.kafka.TopicMatch)
+					err = et.PushKafka(bb, et.kafka.TopicTx)
 
 					if err != nil {
 						logrus.Error(err)
