@@ -219,6 +219,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 						TxHash:         tx.Hash,
 						Chain:          "HUI",
 						AssetSymbol:    "hui",
+						Decimals:       18,
 						TxHeight:       block.Number,
 						CurChainHeight: block.Number + b.config.Fetch.BlocksDelay,
 					}
