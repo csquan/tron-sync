@@ -253,7 +253,7 @@ type TxMonitor struct {
 	Hash    string `xorm:"f_hash"`
 	Chain   string `xorm:"f_chain"`
 	OrderID string `xorm:"f_order_id"`
-	Push    string `xorm:"f_push"`
+	Push    bool   `xorm:"f_push"`
 }
 
 type TxPush struct {
