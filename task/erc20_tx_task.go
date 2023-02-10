@@ -276,6 +276,21 @@ func (et *Erc20TxTask) doSave(txErc20s []*mysqldb.TxErc20, erc20Infos []*mtypes.
 	}, et.config.OutPut.RetryTimes, et.config.OutPut.RetryInterval)
 }
 
+func (et *Erc20TxTask) PushKafka(bb []byte) error {
+	entool, err := utils.EnTool(et.config.Ery.PUB)
+	if err != nil {
+		return err
+	}
+	//加密
+	out, err := entool.ECCEncrypt(bb)
+	if err != nil {
+		return err
+	}
+
+	err = et.kafka.Pushkafka(out, et.kafka.Topic)
+	return err
+}
+
 func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 	var txErc20s []*mysqldb.TxErc20
 	var erc20Infos []*mtypes.Erc20Info
@@ -343,22 +358,14 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
 					}
 					//push kafka
-					b, err := json.Marshal(txKakfa)
+					bb, err := json.Marshal(txKakfa)
 					if err != nil {
 						logrus.Warnf("Marshal txErc20s err:%v", err)
 					}
 
-					entool, err := utils.EnTool(et.config.Ery.PUB)
-					if err != nil {
-						logrus.Error(err)
-					}
-					//加密
-					out, err := entool.ECCEncrypt(b)
-					if err != nil {
-						logrus.Error(err)
-					}
+					//push tx to kafka
+					err = et.PushKafka(bb)
 
-					err = et.kafka.Pushkafka(out)
 					if err != nil {
 						logrus.Error(err)
 					}

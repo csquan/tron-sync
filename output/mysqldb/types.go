@@ -247,3 +247,19 @@ type Monitor struct {
 	Uid    string `xorm:"f_uid"`
 	AppId  string `xorm:"f_appid"`
 }
+
+type TxMonitor struct {
+	*Base   `xorm:"extends"`
+	Hash    string `xorm:"f_hash"`
+	Chain   string `xorm:"f_chain"`
+	OrderID string `xorm:"f_order_id"`
+	Push    string `xorm:"f_push"`
+}
+
+type TxPush struct {
+	Chain          string `json:"chain"`
+	Hash           string `json:"hash"`
+	TxHeight       uint64 `json:"tx_height"`        //交易所在高度
+	CurChainHeight uint64 `json:"cur_chain_height"` //当前高度
+	OrderId        string `json:"order_id"`         //回调地址
+}

@@ -45,9 +45,9 @@ func bigIntToStr(v *big.Int) string {
 	return v.String()
 }
 
-func (b *PushKafkaService) Pushkafka(value []byte) error {
+func (b *PushKafkaService) Pushkafka(value []byte, topic string) error {
 	msg := &sarama.ProducerMessage{
-		Topic: b.Topic,
+		Topic: topic,
 		Value: sarama.ByteEncoder(value),
 	}
 

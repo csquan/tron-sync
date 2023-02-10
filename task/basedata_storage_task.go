@@ -164,6 +164,39 @@ func (b *BaseStorageTask) Stop() {
 	b.stopChan <- 1
 }
 
+func (b *BaseStorageTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (bool, *mysqldb.TxMonitor) {
+	for _, value := range monitors {
+		if value.Hash == hash {
+			return true, value
+		}
+	}
+	return false, nil
+}
+
+func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64) *mysqldb.TxPush {
+	txpush := mysqldb.TxPush{}
+	txpush.Hash = tx.Hash
+	txpush.Chain = tx.Chain
+	txpush.OrderId = tx.OrderID
+	txpush.TxHeight = TxHeight
+	txpush.CurChainHeight = CurChainHeight
+	return &txpush
+}
+func (b *BaseStorageTask) PushKafka(bb []byte) error {
+	entool, err := utils.EnTool(b.config.Ery.PUB)
+	if err != nil {
+		return err
+	}
+	//加密
+	out, err := entool.ECCEncrypt(bb)
+	if err != nil {
+		return err
+	}
+
+	err = b.kafka.Pushkafka(out, b.kafka.Topic)
+	return err
+}
+
 // saveBlocks save blocks and related informations into DB
 func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	start := time.Now()
@@ -172,6 +205,12 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	}()
 	session := b.db.GetSession()
 	defer session.Close()
+
+	//这里取出数据库中未push的监控交易
+	txMonitors, err := b.monitorDb.GetMonitorTx(b.config.Fetch.ChainName)
+	if err != nil {
+		logrus.Error(err)
+	}
 
 	for _, block := range blocks {
 		bexist, err := b.db.GetBlockByNumAndState(block.Number, block.State)
@@ -200,6 +239,22 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
 
+			found, txvalue := b.Contains(txMonitors, tx.Hash)
+
+			if found == true {
+				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay)
+
+				bb, err := json.Marshal(pushTx)
+				if err != nil {
+					logrus.Warnf("Marshal pushTx err:%v", err)
+				}
+
+				//push tx to kafka
+				err = b.PushKafka(bb)
+				if err != nil {
+					logrus.Error(err)
+				}
+			}
 			if tx.IsContract == false {
 				//找到to地址关联账户的UID
 				logrus.Info("tx arriaved++")
@@ -223,23 +278,13 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 						TxHeight:       block.Number,
 						CurChainHeight: block.Number + b.config.Fetch.BlocksDelay,
 					}
-					//push tx to kafka
 					bb, err := json.Marshal(txKakfa)
 					if err != nil {
 						logrus.Warnf("Marshal txErc20s err:%v", err)
 					}
 
-					entool, err := utils.EnTool(b.config.Ery.PUB)
-					if err != nil {
-						logrus.Error(err)
-					}
-					//加密
-					out, err := entool.ECCEncrypt(bb)
-					if err != nil {
-						logrus.Error(err)
-					}
-
-					err = b.kafka.Pushkafka(out)
+					//push tx to kafka
+					err = b.PushKafka(bb)
 					if err != nil {
 						logrus.Error(err)
 					}

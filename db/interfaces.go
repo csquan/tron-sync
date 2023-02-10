@@ -18,6 +18,7 @@ type IReader interface {
 	GetErc20info(addr string) (*mysqldb.Erc20Info, error)
 
 	GetMonitorUID(to string) (string, error)
+	GetMonitorTx(chain string) ([]*mysqldb.TxMonitor, error)
 }
 
 type IWriter interface {

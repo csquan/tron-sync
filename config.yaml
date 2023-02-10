@@ -36,6 +36,7 @@ fetch:
   fetch_timeout: 300000
   start_height: 2637208
   end_height: 0
+  chain_name: hui
 
 
 

@@ -59,6 +59,8 @@ type FetchConf struct {
 
 	StartHeight uint64 `mapstructure:"start_height"`
 	EndHeight   uint64 `mapstructure:"end_height"`
+
+	ChainName string `mapstructure:"chain_name"`
 }
 
 func (f *FetchConf) init() {

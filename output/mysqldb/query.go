@@ -406,3 +406,14 @@ func (db *MysqlDB) GetMonitorUID(to string) (string, error) {
 	}
 	return monitor.Uid, nil
 }
+
+func (db *MysqlDB) GetMonitorTx(chain string) ([]*TxMonitor, error) {
+	txMonitors := make([]*TxMonitor, 0)
+	var err error
+
+	err = db.engine.Table("t_monitor_hash").Where("f_chain = ? and f_push = 0", chain).Find(&txMonitors)
+	if err != nil {
+		return nil, err
+	}
+	return txMonitors, nil
+}
