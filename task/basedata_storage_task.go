@@ -283,23 +283,23 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
 
-			//这里同步轮训查询收据，查询到了才进行下一步
 			found, txvalue := b.Contains(txMonitors, tx.Hash)
 
-			status := b.getReceipt(tx.Hash)
-
 			if found == true {
+				status := b.getReceipt(tx.Hash)
+
 				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status)
 
 				bb, err := json.Marshal(pushTx)
 				if err != nil {
 					logrus.Warnf("Marshal pushTx err:%v", err)
 				}
-
-				//push tx to kafka
+				//push tx to kafka--这里重试机制-存储在db中，然后走状态机，才能保证不丢失数据
 				err = b.PushKafka(bb, b.kafka.TopicMatch)
 				if err != nil {
 					logrus.Error(err)
+				} else {
+					b.monitorDb.UpdateMonitorHash(1, tx.Hash, b.config.Fetch.ChainName)
 				}
 			}
 			if tx.IsContract == false {
