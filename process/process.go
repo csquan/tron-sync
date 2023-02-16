@@ -117,7 +117,7 @@ func (p *Process) Run() {
 }
 
 func allTasks(p *Process) (tasks []task.ITask, err error) {
-	baseData := task.NewBaseStorageTask(p.config, p.db, p.monitorDb)
+	baseData := task.NewBaseStorageTask(p.config, p.client, p.db, p.monitorDb)
 	tasks = []task.ITask{baseData}
 	//context := context.Background()
 

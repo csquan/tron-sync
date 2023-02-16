@@ -262,4 +262,5 @@ type TxPush struct {
 	TxHeight       uint64 `json:"tx_height"`        //交易所在高度
 	CurChainHeight uint64 `json:"cur_chain_height"` //当前高度
 	OrderId        string `json:"order_id"`         //回调地址
+	Success        bool   `json:"success "`         //交易执行成功与否
 }

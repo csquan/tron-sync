@@ -1,10 +1,13 @@
 package task
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/chainmonitor/kafka"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 	"time"
 
 	"github.com/chainmonitor/output/mysqldb"
@@ -20,6 +23,7 @@ import (
 
 type BaseStorageTask struct {
 	config    *config.Config
+	client    *rpc.Client
 	blockChan chan *mtypes.Block
 	sub       event.Subscription
 
@@ -31,14 +35,16 @@ type BaseStorageTask struct {
 	kafka     *kafka.PushKafkaService
 }
 
-func NewBaseStorageTask(config *config.Config, db db.IDB, monitorDb db.IDB) *BaseStorageTask {
+func NewBaseStorageTask(config *config.Config, client *rpc.Client, db db.IDB, monitorDb db.IDB) *BaseStorageTask {
 	task := BaseStorageTask{
 		config:    config,
+		client:    client,
 		db:        db,
 		monitorDb: monitorDb,
 		stopChan:  make(chan interface{}),
 		blockChan: make(chan *mtypes.Block, config.BaseStorage.BufferSize),
 	}
+
 	p, err := kafka.NewSyncProducer(config.Kafka)
 	if err != nil {
 		return nil
@@ -165,6 +171,32 @@ func (b *BaseStorageTask) Stop() {
 	b.stopChan <- 1
 }
 
+func (b *BaseStorageTask) getTxReceipts(txhash string) map[string]*types.Receipt {
+	if len(txhash) == 0 {
+		logrus.Info("txhash empty")
+		return nil
+	}
+	elems := make([]rpc.BatchElem, 0)
+	ret := make(map[string]*types.Receipt)
+
+	receipt := &types.Receipt{}
+	elem := rpc.BatchElem{
+		Method: "eth_getTransactionReceipt",
+		Args:   []interface{}{txhash},
+		Result: receipt,
+	}
+	ret[txhash] = receipt
+	elems = append(elems, elem)
+
+	err := b.client.BatchCallContext(context.Background(), elems)
+	for err != nil {
+		logrus.Info("getTxReceipts err:%v", err)
+		time.Sleep(50 * time.Millisecond)
+		err = b.client.BatchCallContext(context.Background(), elems)
+	}
+	return ret
+}
+
 func (b *BaseStorageTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (bool, *mysqldb.TxMonitor) {
 	for _, value := range monitors {
 		if value.Hash == hash {
@@ -174,15 +206,26 @@ func (b *BaseStorageTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (
 	return false, nil
 }
 
-func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64) *mysqldb.TxPush {
+func (b *BaseStorageTask) getReceipt(hash string) bool {
+	status := false
+	receipts := b.getTxReceipts(hash)
+	if receipts[hash].Status == 1 {
+		status = true
+	}
+	return status
+}
+
+func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool) *mysqldb.TxPush {
 	txpush := mysqldb.TxPush{}
 	txpush.Hash = tx.Hash
 	txpush.Chain = tx.Chain
 	txpush.OrderId = tx.OrderID
 	txpush.TxHeight = TxHeight
 	txpush.CurChainHeight = CurChainHeight
+	txpush.Success = status
 	return &txpush
 }
+
 func (b *BaseStorageTask) PushKafka(bb []byte, topic string) error {
 	entool, err := utils.EnTool(b.config.Ery.PUB)
 	if err != nil {
@@ -240,10 +283,13 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
 
+			//这里同步轮训查询收据，查询到了才进行下一步
 			found, txvalue := b.Contains(txMonitors, tx.Hash)
 
+			status := b.getReceipt(tx.Hash)
+
 			if found == true {
-				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay)
+				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status)
 
 				bb, err := json.Marshal(pushTx)
 				if err != nil {
