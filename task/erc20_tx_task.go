@@ -344,6 +344,19 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						logrus.Error(err)
 					}
 
+					if info == nil { //这里应该直接从线上取
+						logrus.Info("get info from chain")
+						ethAddr := common.HexToAddress(addr)
+						tokeninfo, err := et.getErc20Info(&ethAddr, blk.Number)
+						if err != nil {
+							logrus.Warnf("get erc20 info err:%v,addr:%s", err, addr)
+						}
+						tmp := mysqldb.Erc20Info{}
+						tmp.Symbol = tokeninfo.Symbol
+						tmp.Decimals = tokeninfo.Decimals
+
+						info = &tmp
+					}
 					txKakfa := &mtypes.TxKakfa{
 						From:           sender,
 						To:             receiver,
