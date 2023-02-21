@@ -358,8 +358,8 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						info = &tmp
 					}
 					txKakfa := &mtypes.TxKakfa{
-						From:           sender,
-						To:             receiver,
+						From:           sender.String(),
+						To:             receiver.String(),
 						UID:            uid,
 						Amount:         tokenCnt,
 						TokenType:      2,

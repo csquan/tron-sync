@@ -222,17 +222,17 @@ type TokenPair struct {
 }
 
 type TxKakfa struct {
-	From           common.Address `json:"from"`
-	To             common.Address `json:"to"`
-	UID            string         `json:"uid"`
-	Amount         string         `json:"amount"`
-	TokenType      uint8          `json:"token_type" //1-非ERC20 2-ERC20 `
-	TxHash         string         `json:"tx_hash"`
-	Chain          string         `json:"chain"`
-	ContractAddr   string         `json:"contract_addr"`
-	Decimals       uint8          `json:"decimals"`
-	AssetSymbol    string         `json:"asset_symbol"`
-	TxHeight       uint64         `json:"tx_height"`
-	CurChainHeight uint64         `json:"cur_chain_height"`
-	LogIndex       uint8          `json:"log_index"`
+	From           string `json:"from"`
+	To             string `json:"to"`
+	UID            string `json:"uid"`
+	Amount         string `json:"amount"`
+	TokenType      uint8  `json:"token_type" //1-非ERC20 2-ERC20 `
+	TxHash         string `json:"tx_hash"`
+	Chain          string `json:"chain"`
+	ContractAddr   string `json:"contract_addr"`
+	Decimals       uint8  `json:"decimals"`
+	AssetSymbol    string `json:"asset_symbol"`
+	TxHeight       uint64 `json:"tx_height"`
+	CurChainHeight uint64 `json:"cur_chain_height"`
+	LogIndex       uint8  `json:"log_index"`
 }
