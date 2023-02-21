@@ -364,12 +364,13 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						Amount:         tokenCnt,
 						TokenType:      2,
 						TxHash:         tx.Hash,
-						Chain:          "HUI",
+						Chain:          "hui",
 						ContractAddr:   addr,
 						Decimals:       info.Decimals,
 						AssetSymbol:    info.Symbol,
 						TxHeight:       blk.Number,
 						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
+						LogIndex:       uint8(tlog.Index),
 					}
 					//push kafka
 					bb, err := json.Marshal(txKakfa)

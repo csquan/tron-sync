@@ -234,4 +234,5 @@ type TxKakfa struct {
 	AssetSymbol    string         `json:"asset_symbol"`
 	TxHeight       uint64         `json:"tx_height"`
 	CurChainHeight uint64         `json:"cur_chain_height"`
+	LogIndex       uint8          `json:"log_index"`
 }
