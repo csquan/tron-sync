@@ -333,7 +333,10 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 					BlockTime:      blk.TimeStamp,
 				}
 				//找到to地址关联账户的UID
-				uid, err := et.monitorDb.GetMonitorUID(strings.ToLower(receiver.String()))
+				logrus.Info("erc20tx arriaved++")
+				uidAddr := receiver.String()
+				logrus.Info(uidAddr)
+				uid, err := et.monitorDb.GetMonitorUID(uidAddr)
 				if err != nil {
 					logrus.Error(err)
 				}

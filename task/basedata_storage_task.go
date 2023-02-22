@@ -305,8 +305,9 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if tx.IsContract == false {
 				//找到to地址关联账户的UID
 				logrus.Info("tx arriaved++")
-				logrus.Info(tx.To)
-				uid, err := b.monitorDb.GetMonitorUID(tx.To)
+				to := common.HexToAddress(tx.To).String()
+				logrus.Info(to)
+				uid, err := b.monitorDb.GetMonitorUID(to)
 				if err != nil {
 					logrus.Info("get uid error")
 					logrus.Error(err)
