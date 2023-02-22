@@ -370,7 +370,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						Chain:          "hui",
 						ContractAddr:   addr,
 						Decimals:       info.Decimals,
-						AssetSymbol:    info.Symbol,
+						AssetSymbol:    strings.ToLower(info.Symbol),
 						TxHeight:       blk.Number,
 						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
 						LogIndex:       uint8(tlog.Index),
