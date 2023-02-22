@@ -1,7 +1,6 @@
 package mysqldb
 
 import (
-	"math/big"
 	"time"
 )
 
@@ -258,13 +257,14 @@ type TxMonitor struct {
 }
 
 type TxPush struct {
-	Chain          string   `json:"chain"`
-	Hash           string   `json:"hash"`
-	TxHeight       uint64   `json:"tx_height"`        //交易所在高度
-	CurChainHeight uint64   `json:"cur_chain_height"` //当前高度
-	OrderId        string   `json:"order_id"`         //回调地址
-	Success        bool     `json:"success "`         //交易执行成功与否
-	GasPrice       *big.Int `json:"gas_price "`
-	GasLimit       uint64   `json:"gas_limit "`
-	GasUsed        uint64   `json:"gas_used "`
+	Chain          string `json:"chain"`
+	Hash           string `json:"hash"`
+	TxHeight       uint64 `json:"tx_height"`        //交易所在高度
+	CurChainHeight uint64 `json:"cur_chain_height"` //当前高度
+	OrderId        string `json:"order_id"`         //回调地址
+	Success        bool   `json:"success"`          //交易执行成功与否
+	GasPrice       string `json:"gas_price"`
+	GasLimit       uint64 `json:"gas_limit"`
+	GasUsed        uint64 `json:"gas_used"`
+	Index          int    `json:"index"`
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
-	"math/big"
 	"time"
 
 	"github.com/chainmonitor/output/mysqldb"
@@ -217,7 +216,7 @@ func (b *BaseStorageTask) getReceipt(hash string) bool {
 	return status
 }
 
-func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice *big.Int, gasUsed uint64) *mysqldb.TxPush {
+func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice string, gasUsed uint64, index int) *mysqldb.TxPush {
 	txpush := mysqldb.TxPush{}
 	txpush.Hash = tx.Hash
 	txpush.Chain = tx.Chain
@@ -228,6 +227,7 @@ func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, Cu
 	txpush.GasLimit = gasLimit
 	txpush.GasPrice = gasPrice
 	txpush.GasUsed = gasUsed
+	txpush.Index = index
 	return &txpush
 }
 
@@ -297,7 +297,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if found == true {
 				status := b.getReceipt(tx.Hash)
 
-				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice, tx.GasUsed)
+				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice.String(), tx.GasUsed, tx.Index)
 
 				bb, err := json.Marshal(pushTx)
 				if err != nil {
