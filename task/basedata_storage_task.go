@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
+	"math/big"
 	"time"
 
 	"github.com/chainmonitor/output/mysqldb"
@@ -199,6 +200,7 @@ func (b *BaseStorageTask) getTxReceipts(txhash string) map[string]*types.Receipt
 
 func (b *BaseStorageTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (bool, *mysqldb.TxMonitor) {
 	for _, value := range monitors {
+		logrus.Info(value.Hash)
 		if value.Hash == hash {
 			return true, value
 		}
@@ -215,7 +217,7 @@ func (b *BaseStorageTask) getReceipt(hash string) bool {
 	return status
 }
 
-func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool) *mysqldb.TxPush {
+func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice *big.Int, gasUsed uint64) *mysqldb.TxPush {
 	txpush := mysqldb.TxPush{}
 	txpush.Hash = tx.Hash
 	txpush.Chain = tx.Chain
@@ -223,6 +225,9 @@ func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, Cu
 	txpush.TxHeight = TxHeight
 	txpush.CurChainHeight = CurChainHeight
 	txpush.Success = status
+	txpush.GasLimit = gasLimit
+	txpush.GasPrice = gasPrice
+	txpush.GasUsed = gasUsed
 	return &txpush
 }
 
@@ -287,11 +292,12 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 
 			logrus.Info("tx matched found")
 			logrus.Info(found)
+			logrus.Info(tx.Hash)
 
 			if found == true {
 				status := b.getReceipt(tx.Hash)
 
-				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status)
+				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice, tx.GasUsed)
 
 				bb, err := json.Marshal(pushTx)
 				if err != nil {
