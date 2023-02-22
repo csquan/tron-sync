@@ -305,6 +305,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if tx.IsContract == false {
 				//找到to地址关联账户的UID
 				logrus.Info("tx arriaved++")
+				logrus.Info(tx.To)
 				uid, err := b.monitorDb.GetMonitorUID(tx.To)
 				if err != nil {
 					logrus.Info("get uid error")
@@ -336,6 +337,8 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 						logrus.Error(err)
 					}
 					logrus.Info("push kafka success ++")
+				} else {
+					logrus.Info("can not found uid+++")
 				}
 			}
 
