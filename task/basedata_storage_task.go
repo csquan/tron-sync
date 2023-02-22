@@ -285,6 +285,9 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 
 			found, txvalue := b.Contains(txMonitors, tx.Hash)
 
+			logrus.Info("tx matched found")
+			logrus.Info(found)
+
 			if found == true {
 				status := b.getReceipt(tx.Hash)
 
@@ -299,6 +302,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				if err != nil {
 					logrus.Error(err)
 				} else {
+					logrus.Info("tx matched push kafka success")
 					b.monitorDb.UpdateMonitorHash(1, tx.Hash, b.config.Fetch.ChainName)
 				}
 			}
