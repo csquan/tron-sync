@@ -368,13 +368,14 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 						TokenType:      2,
 						TxHash:         tx.Hash,
 						Chain:          "hui",
-						ContractAddr:   addr,
+						ContractAddr:   common.HexToAddress(addr).String(),
 						Decimals:       info.Decimals,
 						AssetSymbol:    strings.ToLower(info.Symbol),
 						TxHeight:       blk.Number,
 						CurChainHeight: blk.Number + et.config.Fetch.BlocksDelay,
 						LogIndex:       uint8(tlog.Index),
 					}
+					logrus.Info(txKakfa.ContractAddr)
 					//push kafka
 					bb, err := json.Marshal(txKakfa)
 					if err != nil {
