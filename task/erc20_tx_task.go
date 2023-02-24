@@ -292,6 +292,16 @@ func (et *Erc20TxTask) PushKafka(bb []byte, topic string) error {
 	return err
 }
 
+func (et *Erc20TxTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (bool, *mysqldb.TxMonitor) {
+	for _, value := range monitors {
+		logrus.Info(value.Hash)
+		if value.Hash == hash {
+			return true, value
+		}
+	}
+	return false, nil
+}
+
 func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 	var txErc20s []*mysqldb.TxErc20
 	var erc20Infos []*mtypes.Erc20Info
@@ -340,7 +350,20 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 				if err != nil {
 					logrus.Error(err)
 				}
-				if len(uid) > 0 {
+
+				//这里取出数据库中未push的监控交易
+				txMonitors, err := et.monitorDb.GetMonitorTx(et.config.Fetch.ChainName)
+				if err != nil {
+					logrus.Error(err)
+				}
+
+				found, _ := et.Contains(txMonitors, tx.Hash)
+
+				logrus.Info("tx matched found")
+				logrus.Info(found)
+				logrus.Info(tx.Hash)
+
+				if len(uid) > 0 && found == false {
 					//这里从db找到token精度
 					logrus.Info("find uid")
 					info, err := et.GetContractInfo(addr)
