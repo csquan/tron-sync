@@ -10,6 +10,13 @@ const (
 	Block_all
 )
 
+const (
+	READYPUSH                  = iota //待push
+	FOUNDRECEIPTANDPUSHSUCCESS        //找到收据且push成功
+	FOUNDRECEIPTANDPUSHFAILED         //找到收据且push失败
+	FOUNDNORECEIPT                    //没找到收据
+)
+
 type AsyncTask struct {
 	Id        uint64 `xorm:"id"`
 	Name      string `xorm:"name"`
@@ -249,11 +256,16 @@ type Monitor struct {
 }
 
 type TxMonitor struct {
-	*Base   `xorm:"extends"`
-	Hash    string `xorm:"f_hash"`
-	Chain   string `xorm:"f_chain"`
-	OrderID string `xorm:"f_order_id"`
-	Push    bool   `xorm:"f_push"`
+	*Base    `xorm:"extends"`
+	Hash     string `xorm:"f_hash"`
+	Chain    string `xorm:"f_chain"`
+	OrderID  string `xorm:"f_order_id"`
+	Push     bool   `xorm:"f_push"`
+	Status   int    `xorm:"f_status"` //该监控交易push的状态
+	GasLimit uint64 `xorm:"f_gasLimit"`
+	GasPrice string `xorm:"f_gasPrice"`
+	GasUsed  int    `xorm:"f_gasUsed"`
+	Index    int    `xorm:"f_index"`
 }
 
 type TxPush struct {

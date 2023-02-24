@@ -18,7 +18,7 @@ type IReader interface {
 	GetErc20info(addr string) (*mysqldb.Erc20Info, error)
 
 	GetMonitorUID(to string) (string, error)
-	GetMonitorTx(chain string) ([]*mysqldb.TxMonitor, error)
+	GetOpenMonitorTx(chain string) ([]*mysqldb.TxMonitor, error)
 }
 
 type IWriter interface {
@@ -56,7 +56,7 @@ type IWriter interface {
 	UpdateTokenPairsReserve(s xorm.Interface, pairs []*mysqldb.TokenPair) error
 
 	DeleteErc20InfoByAddr(session xorm.Interface, addr string) error
-	UpdateMonitorHash(done int, hash string, chain string) error
+	UpdateMonitorHash(done int, gasLimit uint64, gasPrice string, gasUsed uint64, index int, status int, hash string, chain string, orderId string) error
 
 	GetSession() *xorm.Session
 	GetEngine() *xorm.Engine
