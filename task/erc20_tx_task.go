@@ -342,6 +342,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 				}
 				if len(uid) > 0 {
 					//这里从db找到token精度
+					logrus.Info("find uid")
 					info, err := et.GetContractInfo(addr)
 					if err != nil {
 						logrus.Error(err)
@@ -387,7 +388,11 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 
 					if err != nil {
 						logrus.Error(err)
+					} else {
+						logrus.Info("push success")
 					}
+				} else {
+					logrus.Info("not find uid")
 				}
 
 				txErc20s = append(txErc20s, txErc20)
