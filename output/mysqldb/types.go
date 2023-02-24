@@ -267,4 +267,5 @@ type TxPush struct {
 	GasLimit       uint64 `json:"gas_limit"`
 	GasUsed        uint64 `json:"gas_used"`
 	Index          int    `json:"index"`
+	ContractAddr   string `json:"contract_addr"`
 }

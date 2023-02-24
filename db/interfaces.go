@@ -19,6 +19,8 @@ type IReader interface {
 
 	GetMonitorUID(to string) (string, error)
 	GetMonitorTx(chain string) ([]*mysqldb.TxMonitor, error)
+
+	GetContractAddrByHash(hash string) ([]*mysqldb.TxLog, error)
 }
 
 type IWriter interface {

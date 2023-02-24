@@ -417,3 +417,13 @@ func (db *MysqlDB) GetMonitorTx(chain string) ([]*TxMonitor, error) {
 	}
 	return txMonitors, nil
 }
+
+func (db *MysqlDB) GetContractAddrByHash(hash string) ([]*TxLog, error) {
+	txlogs := make([]*TxLog, 0)
+	var err error
+	err = db.engine.Table("tx_log").Where("tx_hash = ? ", hash).Find(&txlogs)
+	if err != nil {
+		return nil, err
+	}
+	return txlogs, nil
+}

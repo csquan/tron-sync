@@ -216,7 +216,7 @@ func (b *BaseStorageTask) getReceipt(hash string) bool {
 	return status
 }
 
-func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice string, gasUsed uint64, index int) *mysqldb.TxPush {
+func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice string, gasUsed uint64, index int, contractAddr string) *mysqldb.TxPush {
 	txpush := mysqldb.TxPush{}
 	txpush.Hash = tx.Hash
 	txpush.Chain = tx.Chain
@@ -228,6 +228,7 @@ func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, Cu
 	txpush.GasPrice = gasPrice
 	txpush.GasUsed = gasUsed
 	txpush.Index = index
+	txpush.ContractAddr = contractAddr
 	return &txpush
 }
 
@@ -246,9 +247,14 @@ func (b *BaseStorageTask) PushKafka(bb []byte, topic string) error {
 	return err
 }
 
+func (b *BaseStorageTask) getContractAddr(hash string) ([]*mysqldb.TxLog, error) {
+	return b.db.GetContractAddrByHash(hash)
+}
+
 // saveBlocks save blocks and related informations into DB
 func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	start := time.Now()
+
 	defer func() {
 		logrus.Infof("block size:%d,number:%d,cost:%v", len(blocks), blocks[0].Number, time.Since(start))
 	}()
@@ -288,6 +294,13 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
 
+			//这里查找合约地址
+			contractAddr := ""
+			if tx.IsContract == true {
+				contractAddr = tx.EventLogs[0].Addr
+				logrus.Info("find contractAddr Address:" + contractAddr)
+			}
+
 			found, txvalue := b.Contains(txMonitors, tx.Hash)
 
 			logrus.Info("tx matched found")
@@ -297,7 +310,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			if found == true {
 				status := b.getReceipt(tx.Hash)
 
-				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice.String(), tx.GasUsed, tx.Index)
+				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice.String(), tx.GasUsed, tx.Index, contractAddr)
 
 				bb, err := json.Marshal(pushTx)
 				if err != nil {

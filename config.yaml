@@ -31,7 +31,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 3319910
+  start_height: 3328395
   end_height: 0
   chain_name: hui
 
@@ -93,7 +93,7 @@ kafka:
   topic_tx: tx-arrived2
   topic_match: tx_matched0
   kafka_servers:
-    - "kafka.fat123.ml:9092"
+    - "123.113.178.41:9092"
 
 push_blk:
   buffer_size: 10
