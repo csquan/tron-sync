@@ -298,6 +298,8 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			contractAddr := ""
 			if tx.IsContract == true {
 				contractAddr = tx.EventLogs[0].Addr
+				logrus.Info("find EventLogs len:")
+				logrus.Info(tx.EventLogs[0])
 				logrus.Info("find contractAddr Address:" + contractAddr)
 			}
 
@@ -325,7 +327,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 					b.monitorDb.UpdateMonitorHash(1, tx.Hash, b.config.Fetch.ChainName)
 				}
 			}
-			if tx.IsContract == false {
+			if tx.IsContract == false && found == false { //排除监控匹配的topic-》提现，这里只处理充值
 				//找到to地址关联账户的UID
 				logrus.Info("tx arriaved++")
 				to := common.HexToAddress(tx.To).String()
