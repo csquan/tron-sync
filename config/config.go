@@ -109,6 +109,10 @@ type Kafka struct {
 	Brokers    []string `mapstructure:"kafka_servers"`
 	TopicTx    string   `mapstructure:"topic_tx"`
 	TopicMatch string   `mapstructure:"topic_match"`
+
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Algoritm string `mapstructure:"algoritm"`
 }
 
 type PushBlk struct {

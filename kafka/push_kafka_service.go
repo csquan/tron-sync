@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"github.com/chainmonitor/utils"
 	"math/big"
 	"time"
 
@@ -17,6 +18,7 @@ type PushKafkaService struct {
 
 func NewSyncProducer(config config.Kafka) (pro sarama.SyncProducer, e error) {
 	producerConfig := sarama.NewConfig()
+	utils.WithSASLAuth(config.User, config.Password, config.Algoritm)(producerConfig)
 	producerConfig.Producer.Return.Successes = true
 	producerConfig.Producer.Timeout = 5 * time.Second
 	producerConfig.Producer.MaxMessageBytes = config.ProducerMax
