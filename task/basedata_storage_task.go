@@ -255,9 +255,9 @@ func (b *BaseStorageTask) getContractAddr(hash string) ([]*mysqldb.TxLog, error)
 }
 
 func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.TxMonitor) {
-	switch monitor.Status {
+	switch monitor.ReceiptState {
 	case 0, 1: //成功上链，执行有成功和失败
-		pushTx := b.GetPushData(monitor, block.Number, block.Number+b.config.Fetch.BlocksDelay, monitor.Status == 1, monitor.GasLimit, monitor.GasPrice, monitor.GasUsed, monitor.Index, monitor.ContractAddr)
+		pushTx := b.GetPushData(monitor, block.Number, block.Number+b.config.Fetch.BlocksDelay, monitor.ReceiptState == 1, monitor.GasLimit, monitor.GasPrice, monitor.GasUsed, monitor.Index, monitor.ContractAddr)
 		bb, err := json.Marshal(pushTx)
 		if err != nil {
 			logrus.Warnf("Marshal pushTx err:%v", err)
@@ -267,16 +267,15 @@ func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.Tx
 		if err != nil { //如果kafka push出错，那么这里打印错误并保存tx数据，下次继续push
 			logrus.Info("tx matched push kafka wrong")
 			logrus.Error(err)
-			monitor.Push = false
+			monitor.PushState = false
 			b.monitorDb.UpdateMonitorHash(monitor)
 		} else {
 			logrus.Info("tx matched push kafka success")
-			monitor.Push = true
+			monitor.PushState = true
 			b.monitorDb.UpdateMonitorHash(monitor)
 		}
 	case -1: //没有上链，那么这里要保存这个tx数据，下次继续查询收据然后push
-		monitor.Push = false
-		//assert(monitor.Status == -1)
+		monitor.PushState = false
 		b.monitorDb.UpdateMonitorHash(monitor)
 	default:
 		logrus.Warnf("should not go here,check out!!!")
@@ -293,7 +292,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	session := b.db.GetSession()
 	defer session.Close()
 
-	//这里取出数据库中未push成功的监控交易
+	//这里取出数据库中没找到收据的监控交易（找到收据的交易直接push加重试报警了）
 	txMonitors, err := b.monitorDb.GetOpenMonitorTx(b.config.Fetch.ChainName)
 	if err != nil {
 		logrus.Error(err)
@@ -304,10 +303,11 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		if err != nil {
 			return fmt.Errorf("get exist block err:%v,num:%d,state:%d", err, block.Number, block.State)
 		}
-		if bexist != nil {
-			logrus.Warnf("block already commited num:%d,state:%d", block.Number, block.State)
-			continue
-		}
+		logrus.Info(bexist)
+		//if bexist != nil {
+		//	logrus.Warnf("block already commited num:%d,state:%d", block.Number, block.State)
+		//	continue
+		//}
 		err = session.Begin()
 		if err != nil {
 			return fmt.Errorf("session beigin err:%v,blk num:%d", err, blocks[0].Number)
@@ -323,25 +323,17 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		blockdbs = append(blockdbs, dbBlock)
 
 		for _, monitor := range txMonitors {
-			switch monitor.Status {
-			case mysqldb.FOUNDNORECEIPT: //如果收据上次没取到，就直接再取收据,push
-				logrus.Info(monitor.Status)
+			if monitor.ReceiptState == mysqldb.FoundNoReceipt { //如果收据上次没取到，就直接再取收据,push
 				logrus.Info("get receipt again")
 				status := b.getReceipt(monitor.Hash)
 				logrus.Info("tx receipt status:")
 				logrus.Info(status)
 
 				if status != -1 { //取到收据
+					monitor.ReceiptState = status
 					b.pushMatchedTx(block, monitor)
-					//更新db
+					b.monitorDb.UpdateMonitorHash(monitor)
 				}
-			case mysqldb.FOUNDRECEIPTANDPUSHFAILED: //上次收到了收据，但是push失败，这次直接push即可
-				logrus.Info(monitor.Status)
-				logrus.Info("just push again")
-				b.pushMatchedTx(block, monitor)
-			default:
-				logrus.Info(monitor.Status)
-				logrus.Info("tx hash: " + monitor.Hash + "  push in real time!")
 			}
 		}
 
@@ -367,7 +359,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				logrus.Info("tx receipt status:")
 				logrus.Info(status)
 				//push
-				monitor.Status = status
+				monitor.ReceiptState = status
 				monitor.Hash = tx.Hash
 				monitor.GasLimit = tx.GasLimit
 				monitor.GasPrice = tx.GasPrice.String()

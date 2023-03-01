@@ -155,7 +155,7 @@ func (db *MysqlDB) UpdateTokenPairsReserve(s xorm.Interface, pairs []*TokenPair)
 }
 
 func (db *MysqlDB) UpdateMonitorHash(monitor *TxMonitor) error {
-	_, err := db.engine.ID(monitor.ID).Update(monitor)
+	_, err := db.engine.Table("t_monitor_hash").ID(monitor.ID).Update(monitor)
 	if err != nil {
 		logrus.Error(err)
 		return err

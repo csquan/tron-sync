@@ -11,10 +11,9 @@ const (
 )
 
 const (
-	READYPUSH                  = iota //待push
-	FOUNDRECEIPTANDPUSHSUCCESS        //找到收据且push成功
-	FOUNDRECEIPTANDPUSHFAILED         //找到收据且push失败
-	FOUNDNORECEIPT                    //没找到收据
+	ReadyPush      = iota //待push
+	FoundNoReceipt        //没找到收据
+	FoundReceipt          //找到收据且push失败
 )
 
 type AsyncTask struct {
@@ -261,13 +260,13 @@ type TxMonitor struct {
 	Hash         string `xorm:"f_hash"`
 	Chain        string `xorm:"f_chain"`
 	OrderID      string `xorm:"f_order_id"`
-	Push         bool   `xorm:"f_push"`     //该交易是否成功push
-	Status       int    `xorm:"f_status"`   //该交易是否收到收据
-	GasLimit     uint64 `xorm:"f_gasLimit"` //下面字段都是需要传给nikki的
+	PushState    bool   `xorm:"f_push_state"`    //是否成功push
+	ReceiptState int    `xorm:"f_receipt_state"` //该交易是否获得收据
+	GasLimit     uint64 `xorm:"f_gasLimit"`      //下面字段都是需要传给nikki的
 	GasPrice     string `xorm:"f_gasPrice"`
 	GasUsed      uint64 `xorm:"f_gasUsed"`
 	Index        int    `xorm:"f_index"`
-	ContractAddr string `json:"f_contract_addr"`
+	ContractAddr string `xorm:"f_contract_addr"`
 }
 
 // 给nikki的交易 tx_matched0
