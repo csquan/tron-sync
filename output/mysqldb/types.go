@@ -10,6 +10,13 @@ const (
 	Block_all
 )
 
+const (
+	READYPUSH                  = iota //待push
+	FOUNDRECEIPTANDPUSHSUCCESS        //找到收据且push成功
+	FOUNDRECEIPTANDPUSHFAILED         //找到收据且push失败
+	FOUNDNORECEIPT                    //没找到收据
+)
+
 type AsyncTask struct {
 	Id        uint64 `xorm:"id"`
 	Name      string `xorm:"name"`
@@ -248,14 +255,22 @@ type Monitor struct {
 	AppId  string `xorm:"f_appid"`
 }
 
+// 表t_monitor_hash对应的字段
 type TxMonitor struct {
-	*Base   `xorm:"extends"`
-	Hash    string `xorm:"f_hash"`
-	Chain   string `xorm:"f_chain"`
-	OrderID string `xorm:"f_order_id"`
-	Push    bool   `xorm:"f_push"`
+	*Base        `xorm:"extends"`
+	Hash         string `xorm:"f_hash"`
+	Chain        string `xorm:"f_chain"`
+	OrderID      string `xorm:"f_order_id"`
+	Push         bool   `xorm:"f_push"`     //该交易是否成功push
+	Status       int    `xorm:"f_status"`   //该交易是否收到收据
+	GasLimit     uint64 `xorm:"f_gasLimit"` //下面字段都是需要传给nikki的
+	GasPrice     string `xorm:"f_gasPrice"`
+	GasUsed      uint64 `xorm:"f_gasUsed"`
+	Index        int    `xorm:"f_index"`
+	ContractAddr string `json:"f_contract_addr"`
 }
 
+// 给nikki的交易 tx_matched0
 type TxPush struct {
 	Chain          string `json:"chain"`
 	Hash           string `json:"hash"`

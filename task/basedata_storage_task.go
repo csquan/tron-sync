@@ -207,13 +207,16 @@ func (b *BaseStorageTask) Contains(monitors []*mysqldb.TxMonitor, hash string) (
 	return false, nil
 }
 
-func (b *BaseStorageTask) getReceipt(hash string) bool {
-	status := false
+func (b *BaseStorageTask) getReceipt(hash string) int {
 	receipts := b.getTxReceipts(hash)
-	if receipts[hash].Status == 1 {
-		status = true
+	if receipts == nil { //查不到收据，还没有上链
+		logrus.Info("receipt of hash:" + hash + "is null")
+		return -1
 	}
-	return status
+	if receipts[hash].Status == 1 { //上链执行成功
+		return 1
+	}
+	return 0 //上链执行失败
 }
 
 func (b *BaseStorageTask) GetPushData(tx *mysqldb.TxMonitor, TxHeight uint64, CurChainHeight uint64, status bool, gasLimit uint64, gasPrice string, gasUsed uint64, index int, contractAddr string) *mysqldb.TxPush {
@@ -251,6 +254,34 @@ func (b *BaseStorageTask) getContractAddr(hash string) ([]*mysqldb.TxLog, error)
 	return b.db.GetContractAddrByHash(hash)
 }
 
+func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.TxMonitor) {
+	if contractAddr == "" { //从db取
+
+	}
+	switch status {
+	case 0, 1: //成功上链，执行有成功和失败
+		pushTx := b.GetPushData(monitor, block.Number, block.Number+b.config.Fetch.BlocksDelay, monitor.Status == 1, monitor.GasLimit, monitor.GasPrice, monitor.GasUsed, monitor.Index, monitor.ContractAddr)
+		bb, err := json.Marshal(pushTx)
+		if err != nil {
+			logrus.Warnf("Marshal pushTx err:%v", err)
+		}
+		//push tx to kafka
+		err = b.PushKafka(bb, b.kafka.TopicMatch)
+		if err != nil { //如果kafka push出错，那么这里打印错误并保存tx数据，下次继续push
+			logrus.Info("tx matched push kafka wrong")
+			logrus.Error(err)
+			b.monitorDb.UpdateMonitorHash(0, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+		} else {
+			logrus.Info("tx matched push kafka success")
+			b.monitorDb.UpdateMonitorHash(1, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+		}
+	case -1: //没有上链，那么这里要保存这个tx数据，下次继续查询收据然后push
+		b.monitorDb.UpdateMonitorHash(0, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+	default:
+		logrus.Warnf("should not go here,check out!!!")
+	}
+}
+
 // saveBlocks save blocks and related informations into DB
 func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	start := time.Now()
@@ -261,8 +292,8 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 	session := b.db.GetSession()
 	defer session.Close()
 
-	//这里取出数据库中未push的监控交易
-	txMonitors, err := b.monitorDb.GetMonitorTx(b.config.Fetch.ChainName)
+	//这里取出数据库中未push成功的监控交易
+	txMonitors, err := b.monitorDb.GetOpenMonitorTx(b.config.Fetch.ChainName)
 	if err != nil {
 		logrus.Error(err)
 	}
@@ -290,6 +321,29 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		dbBlock := mysqldb.ConvertInBlock(block)
 		blockdbs = append(blockdbs, dbBlock)
 
+		for _, monitor := range txMonitors {
+			switch monitor.Status {
+			case mysqldb.FOUNDNORECEIPT: //如果收据上次没取到，就直接再取收据,push
+				logrus.Info(monitor.Status)
+				logrus.Info("get receipt again")
+				status := b.getReceipt(monitor.Hash)
+				logrus.Info("tx receipt status:")
+				logrus.Info(status)
+
+				if status != -1 { //取到收据
+					b.pushMatchedTx(block, monitor)
+				}
+			case mysqldb.FOUNDRECEIPTANDPUSHFAILED: //上次收到了收据，但是push失败，这次直接push即可
+				logrus.Info(monitor.Status)
+				logrus.Info("just push again")
+				//先从db中取出这笔，然后填入
+				b.pushMatchedTx(block, monitor)
+			default:
+				logrus.Info(monitor.Status)
+				logrus.Info("tx hash: " + monitor.Hash + "  push in real time!")
+			}
+		}
+
 		for _, tx := range block.Txs {
 			txdb := mysqldb.ConvertInTx(0, block, tx)
 			txdbs = append(txdbs, txdb)
@@ -302,30 +356,25 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				logrus.Info(tx.EventLogs[0])
 				logrus.Info("find contractAddr Address:" + contractAddr)
 			}
-
-			found, txvalue := b.Contains(txMonitors, tx.Hash)
-
-			logrus.Info("tx matched found")
+			//实时过来的交易hash是否在监控列表中
+			found, monitor := b.Contains(txMonitors, tx.Hash)
+			logrus.Info("tx hash: " + tx.Hash + " matched found:")
 			logrus.Info(found)
-			logrus.Info(tx.Hash)
 
 			if found == true {
 				status := b.getReceipt(tx.Hash)
+				logrus.Info("tx receipt status:")
+				logrus.Info(status)
+				//push
+				monitor.Status = status
+				monitor.Hash = tx.Hash
+				monitor.GasLimit = tx.GasLimit
+				monitor.GasPrice = tx.GasPrice.String()
+				monitor.GasUsed = tx.GasUsed
+				monitor.Index = tx.Index
+				monitor.ContractAddr = contractAddr
 
-				pushTx := b.GetPushData(txvalue, block.Number, block.Number+b.config.Fetch.BlocksDelay, status, tx.GasLimit, tx.GasPrice.String(), tx.GasUsed, tx.Index, contractAddr)
-
-				bb, err := json.Marshal(pushTx)
-				if err != nil {
-					logrus.Warnf("Marshal pushTx err:%v", err)
-				}
-				//push tx to kafka--这里重试机制-存储在db中，然后走状态机，才能保证不丢失数据
-				err = b.PushKafka(bb, b.kafka.TopicMatch)
-				if err != nil {
-					logrus.Error(err)
-				} else {
-					logrus.Info("tx matched push kafka success")
-					b.monitorDb.UpdateMonitorHash(1, tx.Hash, b.config.Fetch.ChainName)
-				}
+				b.pushMatchedTx(block, monitor)
 			}
 			if tx.IsContract == false && found == false { //排除监控匹配的topic-》提现，这里只处理充值
 				//找到to地址关联账户的UID

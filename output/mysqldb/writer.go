@@ -154,7 +154,7 @@ func (db *MysqlDB) UpdateTokenPairsReserve(s xorm.Interface, pairs []*TokenPair)
 	return db.updateTokenPairsReserve(s, pairs)
 }
 
-func (db *MysqlDB) UpdateMonitorHash(done int, hash string, chain string) error {
-	_, err := db.engine.Exec("update t_monitor_hash set f_push = ? where f_hash = ? and f_chain = ?", done, hash, chain)
+func (db *MysqlDB) UpdateMonitorHash(done int, contractAddr string, hash string, chain string, orderId string) error {
+	_, err := db.engine.Exec("update t_monitor_hash set f_push = ?,f_order_id =?,f_contract_addr=? where f_hash = ? and f_chain = ?", done, orderId, contractAddr, hash, chain)
 	return err
 }

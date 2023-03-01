@@ -352,7 +352,7 @@ func (et *Erc20TxTask) handleBlocks(blks []*mtypes.Block) {
 				}
 
 				//这里取出数据库中未push的监控交易
-				txMonitors, err := et.monitorDb.GetMonitorTx(et.config.Fetch.ChainName)
+				txMonitors, err := et.monitorDb.GetOpenMonitorTx(et.config.Fetch.ChainName)
 				if err != nil {
 					logrus.Error(err)
 				}
