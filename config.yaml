@@ -92,6 +92,8 @@ kafka:
   producer_max: 5242880
   topic_tx: tx-arrived2
   topic_match: tx_matched0
+  retry_times: 5
+  retry_interval: 100
   kafka_servers:
     - "123.113.178.41:9092"
 

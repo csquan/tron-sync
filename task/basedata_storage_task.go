@@ -263,10 +263,19 @@ func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.Tx
 			logrus.Warnf("Marshal pushTx err:%v", err)
 		}
 		//push tx to kafka
-		err = b.PushKafka(bb, b.kafka.TopicMatch)
-		if err != nil { //如果kafka push出错，那么这里打印错误并保存tx数据，下次继续push
+		err = utils.HandleErrorWithRetryMaxTime(func() error {
+			var err1 error
+			err1 = b.PushKafka(bb, b.kafka.TopicMatch)
+			if err1 != nil {
+				return err1
+			}
+			return nil
+		}, b.config.Kafka.RetryTimes, b.config.Kafka.RetryInterval)
+
+		if err != nil { //如果kafka push出错，那么这里打印错误并保存tx数据，以供人工查询
 			logrus.Info("tx matched push kafka wrong")
 			logrus.Error(err)
+			//这里应该接上飞机报警信息
 			monitor.PushState = false
 			b.monitorDb.UpdateMonitorHash(monitor)
 		} else {
