@@ -276,15 +276,15 @@ func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.Tx
 			logrus.Info("tx matched push kafka wrong")
 			logrus.Error(err)
 			//这里应该接上飞机报警信息
-			monitor.PushState = false
+			monitor.PushState = "failed"
 			b.monitorDb.UpdateMonitorHash(monitor)
 		} else {
 			logrus.Info("tx matched push kafka success")
-			monitor.PushState = true
+			monitor.PushState = "success"
 			b.monitorDb.UpdateMonitorHash(monitor)
 		}
 	case -1: //没有上链，那么这里要保存这个tx数据，下次继续查询收据然后push
-		monitor.PushState = false
+		monitor.PushState = "failed"
 		b.monitorDb.UpdateMonitorHash(monitor)
 	default:
 		logrus.Warnf("should not go here,check out!!!")
@@ -332,7 +332,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 		blockdbs = append(blockdbs, dbBlock)
 
 		for _, monitor := range txMonitors {
-			if monitor.ReceiptState == mysqldb.FoundNoReceipt { //如果收据上次没取到，就直接再取收据,push
+			if monitor.ReceiptState == mysqldb.ReadyReceipt && monitor.GetReceiptTimes != 0 { //如果收据上次没取到，就直接再取收据,push
 				logrus.Info("get receipt again")
 				status := b.getReceipt(monitor.Hash)
 				logrus.Info("tx receipt status:")
@@ -375,6 +375,7 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 				monitor.GasUsed = tx.GasUsed
 				monitor.Index = tx.Index
 				monitor.ContractAddr = contractAddr
+				monitor.GetReceiptTimes = monitor.GetReceiptTimes + 1
 
 				b.pushMatchedTx(block, monitor)
 			}
