@@ -255,10 +255,7 @@ func (b *BaseStorageTask) getContractAddr(hash string) ([]*mysqldb.TxLog, error)
 }
 
 func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.TxMonitor) {
-	if contractAddr == "" { //从db取
-
-	}
-	switch status {
+	switch monitor.Status {
 	case 0, 1: //成功上链，执行有成功和失败
 		pushTx := b.GetPushData(monitor, block.Number, block.Number+b.config.Fetch.BlocksDelay, monitor.Status == 1, monitor.GasLimit, monitor.GasPrice, monitor.GasUsed, monitor.Index, monitor.ContractAddr)
 		bb, err := json.Marshal(pushTx)
@@ -270,13 +267,17 @@ func (b *BaseStorageTask) pushMatchedTx(block *mtypes.Block, monitor *mysqldb.Tx
 		if err != nil { //如果kafka push出错，那么这里打印错误并保存tx数据，下次继续push
 			logrus.Info("tx matched push kafka wrong")
 			logrus.Error(err)
-			b.monitorDb.UpdateMonitorHash(0, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+			monitor.Push = false
+			b.monitorDb.UpdateMonitorHash(monitor)
 		} else {
 			logrus.Info("tx matched push kafka success")
-			b.monitorDb.UpdateMonitorHash(1, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+			monitor.Push = true
+			b.monitorDb.UpdateMonitorHash(monitor)
 		}
 	case -1: //没有上链，那么这里要保存这个tx数据，下次继续查询收据然后push
-		b.monitorDb.UpdateMonitorHash(0, monitor.ContractAddr, monitor.Hash, b.config.Fetch.ChainName, monitor.OrderID)
+		monitor.Push = false
+		//assert(monitor.Status == -1)
+		b.monitorDb.UpdateMonitorHash(monitor)
 	default:
 		logrus.Warnf("should not go here,check out!!!")
 	}
@@ -332,11 +333,11 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 
 				if status != -1 { //取到收据
 					b.pushMatchedTx(block, monitor)
+					//更新db
 				}
 			case mysqldb.FOUNDRECEIPTANDPUSHFAILED: //上次收到了收据，但是push失败，这次直接push即可
 				logrus.Info(monitor.Status)
 				logrus.Info("just push again")
-				//先从db中取出这笔，然后填入
 				b.pushMatchedTx(block, monitor)
 			default:
 				logrus.Info(monitor.Status)

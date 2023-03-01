@@ -2,7 +2,7 @@ package mysqldb
 
 import (
 	"fmt"
-
+	"github.com/sirupsen/logrus"
 	"xorm.io/xorm"
 )
 
@@ -154,7 +154,11 @@ func (db *MysqlDB) UpdateTokenPairsReserve(s xorm.Interface, pairs []*TokenPair)
 	return db.updateTokenPairsReserve(s, pairs)
 }
 
-func (db *MysqlDB) UpdateMonitorHash(done int, contractAddr string, hash string, chain string, orderId string) error {
-	_, err := db.engine.Exec("update t_monitor_hash set f_push = ?,f_order_id =?,f_contract_addr=? where f_hash = ? and f_chain = ?", done, orderId, contractAddr, hash, chain)
-	return err
+func (db *MysqlDB) UpdateMonitorHash(monitor *TxMonitor) error {
+	_, err := db.engine.ID(monitor.ID).Update(monitor)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+	return nil
 }
