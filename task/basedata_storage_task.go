@@ -313,10 +313,10 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			return fmt.Errorf("get exist block err:%v,num:%d,state:%d", err, block.Number, block.State)
 		}
 		logrus.Info(bexist)
-		//if bexist != nil {
-		//	logrus.Warnf("block already commited num:%d,state:%d", block.Number, block.State)
-		//	continue
-		//}
+		if bexist != nil {
+			logrus.Warnf("block already commited num:%d,state:%d", block.Number, block.State)
+			continue
+		}
 		err = session.Begin()
 		if err != nil {
 			return fmt.Errorf("session beigin err:%v,blk num:%d", err, blocks[0].Number)
