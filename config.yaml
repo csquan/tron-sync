@@ -31,7 +31,7 @@ fetch:
   fetch_retry_times: 5
   fetch_retry_interval: 100
   fetch_timeout: 300000
-  start_height: 3256124
+  start_height: 3587410
   end_height: 0
   chain_name: hui
 
@@ -59,7 +59,7 @@ log:
     enable: false
     topic: "tx-arrived"
     kafka_servers:
-      - "192.168.31.243:9092"
+      - "192.168.31.242:9092"
     level: 5
 
 balance:
@@ -95,7 +95,7 @@ kafka:
   retry_times: 5
   retry_interval: 100
   kafka_servers:
-    - "123.113.178.41:9092"
+    - "192.168.31.242:9092"
 
 push_blk:
   buffer_size: 10

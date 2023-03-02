@@ -353,9 +353,9 @@ func (b *BaseStorageTask) saveBlocks(blocks []*mtypes.Block) error {
 			//这里查找合约地址
 			contractAddr := ""
 			if tx.IsContract == true {
-				contractAddr = tx.EventLogs[0].Addr
 				logrus.Info("find EventLogs len:")
-				logrus.Info(tx.EventLogs[0])
+				logrus.Info(tx.To)
+				contractAddr = tx.To
 				logrus.Info("find contractAddr Address:" + contractAddr)
 			}
 			//实时过来的交易hash是否在监控列表中
