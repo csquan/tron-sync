@@ -59,7 +59,10 @@ type IWriter interface {
 	UpdateTokenPairsReserve(s xorm.Interface, pairs []*mysqldb.TokenPair) error
 
 	DeleteErc20InfoByAddr(session xorm.Interface, addr string) error
-	UpdateMonitorHash(txMonitor *mysqldb.TxMonitor) error
+
+	UpdateMonitorHashPushState(pushState string, id uint64) error
+
+	UpdateMonitorHashDetails(ReceiptState int, hash string, gasLimit uint64, gasPrice string, gasUsed uint64, index int, contractAddr string, getReceiptTimes int, id uint64) error
 
 	GetSession() *xorm.Session
 	GetEngine() *xorm.Engine

@@ -2,7 +2,6 @@ package mysqldb
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"xorm.io/xorm"
 )
 
@@ -154,11 +153,12 @@ func (db *MysqlDB) UpdateTokenPairsReserve(s xorm.Interface, pairs []*TokenPair)
 	return db.updateTokenPairsReserve(s, pairs)
 }
 
-func (db *MysqlDB) UpdateMonitorHash(monitor *TxMonitor) error {
-	_, err := db.engine.Table("t_monitor_hash").ID(monitor.ID).Update(monitor)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-	return nil
+func (db *MysqlDB) UpdateMonitorHashPushState(pushState string, id uint64) error {
+	_, err := db.engine.Table("f_monitor_hash").Exec("update t_monitor_hash set f_push_state = ? where f_id = ?", pushState, id)
+	return err
+}
+
+func (db *MysqlDB) UpdateMonitorHashDetails(ReceiptState int, hash string, gasLimit uint64, gasPrice string, gasUsed uint64, index int, contractAddr string, getReceiptTimes int, id uint64) error {
+	_, err := db.engine.Table("f_monitor_hash").Exec("update t_monitor_hash set f_receipt_state = ? ,f_hash = ?,f_gasLimit = ?,f_gasPrice = ?,f_gasUsed = ? ,f_index = ? ,f_contract_addr = ?,f_get_receipt_times = ? where f_id = ?", ReceiptState, hash, gasLimit, gasPrice, gasUsed, index, contractAddr, getReceiptTimes, id)
+	return err
 }
